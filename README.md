@@ -1,12 +1,12 @@
-# VecCache — S3-backed Hot Vector Cache
+# MemVec — S3-backed Hot Vector Cache
 
-VecCache is a small prototype project that implements a fast in-memory cache layer for large vector collections stored cheaply in Amazon S3 Vectors. The goal: give real-time similarity search latency for the common "hot" queries while keeping the full knowledge base in low-cost S3 storage.
+MemVec is a small prototype project that implements a fast in-memory cache layer for large vector collections stored cheaply in Amazon S3 Vectors. The goal: give real-time similarity search latency for the common "hot" queries while keeping the full knowledge base in low-cost S3 storage.
 
 ---
 
 # Elevator pitch (for non-technical / high-level readers)
 
-Imagine your knowledge base is huge — billions of embeddings — and most of it sits in cheap storage. But your application (a chatbot, recommender, or semantic search) needs instant answers for the common queries. VecCache keeps a small, fast copy of the most-used vectors in memory so queries return instantly. When the in-memory copy doesn’t have the data, VecCache fetches the missing pieces from S3 and fills the cache. The result: fast responses where it matters, affordable storage where it doesn’t.
+Imagine your knowledge base is huge — billions of embeddings — and most of it sits in cheap storage. But your application (a chatbot, recommender, or semantic search) needs instant answers for the common queries. MemVec keeps a small, fast copy of the most-used vectors in memory so queries return instantly. When the in-memory copy doesn’t have the data, MemVec fetches the missing pieces from S3 and fills the cache. The result: fast responses where it matters, affordable storage where it doesn’t.
 
 ---
 
