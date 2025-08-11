@@ -1,0 +1,11 @@
+faiss-cpu
+redis
+boto3
+python-dotenv
+numpy
+
+# Development dependencies
+pytest
+black
+flake8
+mypy
