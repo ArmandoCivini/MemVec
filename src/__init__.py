@@ -12,4 +12,25 @@ from .index import ANNIndex
 from .storage import VectorStorage
 from .main import MemVecRouter
 
-__all__ = ["VectorCache", "ANNIndex", "VectorStorage", "MemVecRouter"]
+# S3 utilities
+from .s3 import (
+    S3VectorManager,
+    create_bucket_simple,
+    create_index_simple,
+    upload_embedded_simple,
+    upload_texts_simple,
+    upload_json_simple
+)
+
+__all__ = [
+    "VectorCache", 
+    "ANNIndex", 
+    "VectorStorage", 
+    "MemVecRouter",
+    "S3VectorManager",
+    "create_bucket_simple",
+    "create_index_simple",
+    "upload_embedded_simple",
+    "upload_texts_simple",
+    "upload_json_simple"
+]

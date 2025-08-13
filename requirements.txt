@@ -3,6 +3,7 @@ redis
 boto3
 python-dotenv
 numpy
+pandas
 
 # Development dependencies
 pytest
@@ -10,5 +11,5 @@ black
 flake8
 mypy
 
-
+# ML dependencies
 sentence-transformers
