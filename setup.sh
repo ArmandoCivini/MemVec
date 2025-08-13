@@ -8,7 +8,7 @@ set -e
 echo "🚀 Setting up MemVec development environment..."
 
 # Check if Python 3 is available
-if ! command -v python3 &> /dev/null; then
+if ! command -v py &> /dev/null; then
     echo "❌ Python 3 is required but not installed."
     exit 1
 fi
@@ -16,7 +16,7 @@ fi
 # Create virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
     echo "📦 Creating Python virtual environment..."
-    python3 -m venv .venv
+    py -m venv .venv
 fi
 
 # Activate virtual environment
