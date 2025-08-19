@@ -13,3 +13,7 @@ mypy
 
 # ML dependencies
 sentence-transformers
+
+# XML parsing and progress tracking
+lxml
+tqdm

@@ -104,6 +104,36 @@ Trade-offs:
 
 # Testing & benchmark plan (POC-level)
 
+## S3 Vector Dataset Testing
+
+MemVec includes comprehensive testing for uploading and managing datasets in S3 Vectors:
+
+* **SimplWiki Upload**: Process Wikipedia Simple English dump into text chunks and upload to S3 Vectors
+* **Smart Skip Logic**: Automatically skip operations if bucket/index/data already exists
+* **Force Recreate**: Environment flag to force deletion and recreation of all resources
+* **Progress Tracking**: Batch upload with progress bars and detailed logging
+
+### Quick Start
+
+```bash
+# Configure AWS credentials in .env file
+# Download SimplWiki dataset
+./datasets/wikipedia-dataset.sh
+
+# Run tests with smart skipping (recommended)
+pytest tests/test_s3_creation.py -v
+
+# Force recreate everything
+MEMVEC_FORCE_RECREATE=true pytest tests/test_s3_creation.py -v
+
+# Process specific number of articles
+MAX_ARTICLES=50 pytest tests/test_s3_creation.py -v
+```
+
+See test file header for additional environment variables and examples.
+
+## Benchmark Plan
+
 1. **Dataset**: generate 100k–1M vectors (128–512 dims) or use public datasets (SIFT, GloVe, LAION embeddings, etc.).
 2. **Simulate load**: produce query traffic with a Zipfian distribution so hot items appear frequently.
 3. **Metrics to capture**:
