@@ -2,20 +2,12 @@
 S3 Vector utilities for MemVec POC.
 """
 
-from .creation import (
-    S3VectorManager,
-    create_bucket_simple,
-    create_index_simple,
-    upload_embedded_simple,
-    upload_texts_simple,
-    upload_json_simple
-)
+from .vector import Vector, LocalVector, BedrockVector
+from .append import append_vectors_to_bucket
 
 __all__ = [
-    "S3VectorManager",
-    "create_bucket_simple", 
-    "create_index_simple",
-    "upload_embedded_simple",
-    "upload_texts_simple",
-    "upload_json_simple"
+    "Vector",
+    "LocalVector", 
+    "BedrockVector",
+    "append_vectors_to_bucket"
 ]

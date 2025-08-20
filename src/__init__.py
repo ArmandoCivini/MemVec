@@ -14,12 +14,8 @@ from .main import MemVecRouter
 
 # S3 utilities
 from .s3 import (
-    S3VectorManager,
-    create_bucket_simple,
-    create_index_simple,
-    upload_embedded_simple,
-    upload_texts_simple,
-    upload_json_simple
+    Vector,
+    append_vectors_to_bucket
 )
 
 __all__ = [
@@ -27,10 +23,6 @@ __all__ = [
     "ANNIndex", 
     "VectorStorage", 
     "MemVecRouter",
-    "S3VectorManager",
-    "create_bucket_simple",
-    "create_index_simple",
-    "upload_embedded_simple",
-    "upload_texts_simple",
-    "upload_json_simple"
+    "Vector",
+    "append_vectors_to_bucket"
 ]

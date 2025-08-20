@@ -17,3 +17,6 @@ sentence-transformers
 # XML parsing and progress tracking
 lxml
 tqdm
+
+# PDF processing
+PyPDF2
