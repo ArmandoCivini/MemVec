@@ -136,7 +136,7 @@ if __name__ == "__main__":
     pdf_path = "datasets/attention.pdf"
     bucket_name = "memvec-test"
     index_name = "memvec-test-index"
-    region_name = "us-east-1"
+    region_name = "us-east-2"  # Fixed to match your ARN
     
     # Run the test with the specified parameters
     test_pdf_to_s3_vectors(pdf_path, bucket_name, index_name, region_name)
