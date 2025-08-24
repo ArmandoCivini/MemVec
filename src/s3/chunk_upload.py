@@ -5,14 +5,12 @@ This module provides functions to upload batches of vectors to S3 as chunks.
 Metadata is handled by the internal storage system, not stored in S3.
 """
 
-import uuid
 import pickle
 import numpy as np
 import boto3
 from typing import List, Dict, Any, Optional
-from datetime import datetime
-from ..config.env import S3_BUCKET_NAME, AWS_REGION
-#TODO: implement chunker for vectors
+from ..config.env import AWS_REGION
+from .chunker import prepare_vectors_for_storage, get_chunk_info, create_chunk_key
 
 def upload_vector_chunk(
     vectors: List[np.ndarray], 
@@ -36,11 +34,12 @@ def upload_vector_chunk(
         - s3_key: The S3 object key for the chunk
         - success: Boolean indicating upload success
     """
-    # Convert to float32 and stack vectors into a single numpy array
-    vectors_array = np.stack([vector.astype(np.float32) for vector in vectors])
+    # Prepare vectors for storage
+    vectors_array = prepare_vectors_for_storage(vectors)
     
-    # Define S3 key
-    vectors_key = f"chunks/{chunk_id}.pkl"
+    # Get chunk info
+    chunk_info = get_chunk_info(vectors, chunk_id)
+    vectors_key = chunk_info["s3_key"]
     
     try:
         # Create S3 client if not provided
@@ -93,8 +92,8 @@ def download_vector_chunk(
         - vectors: numpy array of vectors
         - success: Boolean indicating download success
     """
-    # Define S3 key
-    vectors_key = f"chunks/{chunk_id}.pkl"
+    # Create S3 key using chunker
+    vectors_key = create_chunk_key(chunk_id)
     
     try:
         # Create S3 client if not provided

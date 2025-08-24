@@ -92,7 +92,7 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
 
 if __name__ == "__main__":
     # Set this flag to True to test with real S3
-    USE_REAL_S3 = True
+    USE_REAL_S3 = False
     # Bucket name for testing
     TEST_BUCKET_NAME = "memvec-chunk-test-bucket"
     
