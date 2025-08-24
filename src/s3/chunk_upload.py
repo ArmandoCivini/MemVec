@@ -25,33 +25,17 @@ def upload_vector_chunk(
     
     Args:
         vectors: List of numpy arrays
-        chunk_id: Optional chunk ID. If None, generates a UUID
-        bucket_name: S3 bucket name. Uses default if None
+        chunk_id: Chunk ID for the upload
+        bucket_name: S3 bucket name
         s3_client: Optional S3 client. Creates new one if None
         
     Returns:
         Dictionary containing:
-        - chunk_id: The unique chunk identifier
+        - chunk_id: The chunk identifier
         - number_of_vectors: Number of vectors in the chunk
         - s3_key: The S3 object key for the chunk
         - success: Boolean indicating upload success
     """
-    # Generate chunk ID if not provided
-    if chunk_id is None:
-        chunk_id = str(uuid.uuid4())
-    
-    # Use default bucket if not provided
-    if bucket_name is None:
-        bucket_name = S3_BUCKET_NAME
-    
-    # Validate input vectors
-    if not vectors:
-        raise ValueError("Vector list cannot be empty")
-    
-    for i, vector in enumerate(vectors):
-        if not isinstance(vector, np.ndarray):
-            raise ValueError(f"Vector at index {i} must be numpy array, got {type(vector)}")
-    
     # Convert to float32 and stack vectors into a single numpy array
     vectors_array = np.stack([vector.astype(np.float32) for vector in vectors])
     
@@ -100,8 +84,8 @@ def download_vector_chunk(
     Download a vector chunk from S3.
     
     Args:
-        chunk_id: The unique chunk identifier
-        bucket_name: S3 bucket name. Uses default if None
+        chunk_id: The chunk identifier
+        bucket_name: S3 bucket name
         s3_client: Optional S3 client. Creates new one if None
         
     Returns:
@@ -109,10 +93,6 @@ def download_vector_chunk(
         - vectors: numpy array of vectors
         - success: Boolean indicating download success
     """
-    # Use default bucket if not provided
-    if bucket_name is None:
-        bucket_name = S3_BUCKET_NAME
-    
     # Define S3 key
     vectors_key = f"chunks/{chunk_id}.pkl"
     
