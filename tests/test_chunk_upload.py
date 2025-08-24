@@ -2,7 +2,6 @@
 Simple tests for vector chunk upload functionality.
 """
 
-import numpy as np
 import sys
 import os
 
@@ -12,16 +11,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.s3.chunk_upload import upload_vector_chunk, download_vector_chunk
 from src.s3.mock_client import MockS3Client
 from src.s3.creation import create_s3_bucket
+from src.vectors.vectors import Vector
 
 
 def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     """Test uploading and downloading vector chunks."""
     
-    # Create test vectors
+    # Create test Vector objects
     test_vectors = [
-        np.array([1.0, 2.0, 3.0], dtype=np.float32),
-        np.array([4.0, 5.0, 6.0], dtype=np.float32),
-        np.array([7.0, 8.0, 9.0], dtype=np.float32)
+        Vector(id="vec-1", values=[1.0, 2.0, 3.0]),
+        Vector(id="vec-2", values=[4.0, 5.0, 6.0]),
+        Vector(id="vec-3", values=[7.0, 8.0, 9.0])
     ]
     
     # Choose S3 client
@@ -83,9 +83,9 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     print("✓ Download successful")
     
     # Verify data integrity
-    np.testing.assert_array_almost_equal(downloaded_vectors[0], [1.0, 2.0, 3.0])
-    np.testing.assert_array_almost_equal(downloaded_vectors[1], [4.0, 5.0, 6.0])
-    np.testing.assert_array_almost_equal(downloaded_vectors[2], [7.0, 8.0, 9.0])
+    assert list(downloaded_vectors[0]) == [1.0, 2.0, 3.0]
+    assert list(downloaded_vectors[1]) == [4.0, 5.0, 6.0]
+    assert list(downloaded_vectors[2]) == [7.0, 8.0, 9.0]
     print("✓ Data integrity verified")
     
     return True

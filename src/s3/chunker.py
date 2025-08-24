@@ -7,20 +7,22 @@ separating the chunking logic from upload operations.
 
 import numpy as np
 from typing import List, Dict, Any
+from ..vectors.vectors import Vector
 
 
-def prepare_vectors_for_storage(vectors: List[np.ndarray]) -> np.ndarray:
+def prepare_vectors_for_storage(vectors: List[Vector]) -> np.ndarray:
     """
-    Prepare a list of vectors for storage by converting to consistent format.
+    Prepare a list of Vector objects for storage by converting to consistent format.
     
     Args:
-        vectors: List of numpy arrays
+        vectors: List of Vector objects
         
     Returns:
         numpy array with all vectors stacked and converted to float32
     """
-    # Convert to float32 and stack vectors into a single numpy array
-    vectors_array = np.stack([vector.astype(np.float32) for vector in vectors])
+    # Convert Vector objects to numpy arrays and stack
+    vector_arrays = [vector.to_numpy() for vector in vectors]
+    vectors_array = np.stack(vector_arrays)
     return vectors_array
 
 
@@ -37,12 +39,12 @@ def create_chunk_key(chunk_id: str) -> str:
     return f"chunks/{chunk_id}.pkl"
 
 
-def get_chunk_info(vectors: List[np.ndarray], chunk_id: str) -> Dict[str, Any]:
+def get_chunk_info(vectors: List[Vector], chunk_id: str) -> Dict[str, Any]:
     """
     Get basic information about a vector chunk.
     
     Args:
-        vectors: List of numpy arrays
+        vectors: List of Vector objects
         chunk_id: The chunk identifier
         
     Returns:

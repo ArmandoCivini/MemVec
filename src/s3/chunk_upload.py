@@ -10,10 +10,11 @@ import numpy as np
 import boto3
 from typing import List, Dict, Any, Optional
 from ..config.env import AWS_REGION
+from ..vectors.vectors import Vector
 from .chunker import prepare_vectors_for_storage, get_chunk_info, create_chunk_key
 
 def upload_vector_chunk(
-    vectors: List[np.ndarray], 
+    vectors: List[Vector], 
     chunk_id: Optional[str] = None,
     bucket_name: Optional[str] = None,
     s3_client: Optional[boto3.client] = None
@@ -22,7 +23,7 @@ def upload_vector_chunk(
     Upload a batch of vectors to S3 as a single chunk.
     
     Args:
-        vectors: List of numpy arrays
+        vectors: List of Vector objects
         chunk_id: Chunk ID for the upload
         bucket_name: S3 bucket name
         s3_client: Optional S3 client. Creates new one if None
