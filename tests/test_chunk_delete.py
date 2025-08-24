@@ -1,5 +1,5 @@
 """
-Simple tests for vector chunk upload functionality.
+Simple tests for vector chunk deletion functionality.
 """
 
 import numpy as np
@@ -11,11 +11,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.s3.chunk_upload import upload_vector_chunk, download_vector_chunk
 from src.s3.mock_client import MockS3Client
+from src.s3.delete import delete_vector_chunk
 from src.s3.creation import create_s3_bucket
 
 
-def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
-    """Test uploading and downloading vector chunks."""
+def test_chunk_delete(use_real_s3=False, bucket_name="test-bucket"):
+    """Test uploading, downloading, and deleting vector chunks."""
     
     # Create test vectors
     test_vectors = [
@@ -58,35 +59,44 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     # Upload chunk
     upload_result = upload_vector_chunk(
         vectors=test_vectors,
-        chunk_id="test-chunk",
+        chunk_id="test-delete-chunk",
         bucket_name=bucket_name,
         s3_client=s3_client
     )
     
-    # Check upload success
     assert upload_result["success"] is True
-    assert upload_result["chunk_id"] == "test-chunk"
-    assert upload_result["number_of_vectors"] == 3
     print(f"✓ Upload successful: {upload_result['s3_key']}")
     
-    # Download chunk
+    # Verify chunk exists by downloading
     download_result = download_vector_chunk(
-        chunk_id="test-chunk",
+        chunk_id="test-delete-chunk",
         bucket_name=bucket_name,
         s3_client=s3_client
     )
     
-    # Check download success
     assert download_result["success"] is True
-    downloaded_vectors = download_result["vectors"]
-    assert downloaded_vectors.shape == (3, 3)
-    print("✓ Download successful")
+    print("✓ Chunk exists and can be downloaded")
     
-    # Verify data integrity
-    np.testing.assert_array_almost_equal(downloaded_vectors[0], [1.0, 2.0, 3.0])
-    np.testing.assert_array_almost_equal(downloaded_vectors[1], [4.0, 5.0, 6.0])
-    np.testing.assert_array_almost_equal(downloaded_vectors[2], [7.0, 8.0, 9.0])
-    print("✓ Data integrity verified")
+    # Delete the chunk
+    delete_result = delete_vector_chunk(
+        chunk_id="test-delete-chunk",
+        bucket_name=bucket_name,
+        s3_client=s3_client
+    )
+    
+    assert delete_result["success"] is True
+    assert delete_result["chunk_id"] == "test-delete-chunk"
+    print(f"✓ Delete successful: {delete_result['s3_key']}")
+    
+    # Verify chunk no longer exists
+    download_result_after_delete = download_vector_chunk(
+        chunk_id="test-delete-chunk",
+        bucket_name=bucket_name,
+        s3_client=s3_client
+    )
+    
+    assert download_result_after_delete["success"] is False
+    print("✓ Chunk no longer exists after deletion")
     
     return True
 
@@ -95,12 +105,12 @@ if __name__ == "__main__":
     # Set this flag to True to test with real S3
     USE_REAL_S3 = False
     # Bucket name for testing
-    TEST_BUCKET_NAME = "memvec-chunk-test-bucket"
+    TEST_BUCKET_NAME = "memvec-delete-test-bucket"
     
-    print("Vector Chunk Upload Test")
+    print("Vector Chunk Delete Test")
     print("=" * 30)
     
-    success = test_chunk_upload_download(use_real_s3=USE_REAL_S3, bucket_name=TEST_BUCKET_NAME)
+    success = test_chunk_delete(use_real_s3=USE_REAL_S3, bucket_name=TEST_BUCKET_NAME)
     
     if success:
         print("\n✓ All tests passed!")
