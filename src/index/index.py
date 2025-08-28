@@ -56,6 +56,27 @@ class HNSWIndex:
         distances, indices = self.index.search(query_embedding, k)
         return distances[0].tolist(), indices[0].tolist()
     
+    def multi_search(self, query_vectors: List[Vector], k: int = 5) -> Tuple[List[List[float]], List[List[int]]]:
+        """
+        Search the index for similar vectors using multiple query vectors.
+        
+        Args:
+            query_vectors: List of Vector objects to search for
+            k: Number of nearest neighbors to return for each query
+            
+        Returns:
+            Tuple of (distances, indices) where each is a list of lists
+        """
+        if not query_vectors:
+            return [], []
+        
+        # Convert all query vectors to numpy array
+        query_embeddings = np.array([vector.values for vector in query_vectors], dtype=np.float32)
+        distances, indices = self.index.search(query_embeddings, k)
+        
+        # Convert to lists of lists
+        return distances.tolist(), indices.tolist()
+    
     def get_info(self) -> dict:
         """
         Get information about the index.
