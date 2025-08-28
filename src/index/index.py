@@ -1,0 +1,80 @@
+"""
+FAISS index management for MemVec.
+
+This module provides a simple class to manage a FAISS HNSW index for vector search.
+"""
+
+import faiss
+import numpy as np
+from typing import List, Tuple, Optional
+from ..vectors.vectors import Vector
+
+
+class HNSWIndex:
+    """
+    FAISS HNSW index manager for vector search.
+    """
+    
+    def __init__(self, dimension: int, m: int = 16):
+        """
+        Initialize HNSW index.
+        
+        Args:
+            dimension: Vector dimension
+            m: Number of connections per node (default 16)
+        """
+        self.dimension = dimension
+        self.m = m
+        self.index = faiss.IndexHNSWFlat(dimension, m)
+    
+    def add_vectors(self, vectors: List[Vector]) -> None:
+        """
+        Add vectors to the index.
+        
+        Args:
+            vectors: List of Vector objects to add
+        """
+        if not vectors:
+            return
+        
+        # Convert vectors to numpy array
+        embeddings = np.array([vector.values for vector in vectors], dtype=np.float32)
+        self.index.add(embeddings)
+    
+    def search(self, query_vector: Vector, k: int = 5) -> Tuple[List[float], List[int]]:
+        """
+        Search the index for similar vectors.
+        
+        Args:
+            query_vector: Vector to search for
+            k: Number of nearest neighbors to return
+            
+        Returns:
+            Tuple of (distances, indices)
+        """
+        query_embedding = np.array([query_vector.values], dtype=np.float32)
+        distances, indices = self.index.search(query_embedding, k)
+        return distances[0].tolist(), indices[0].tolist()
+    
+    def get_info(self) -> dict:
+        """
+        Get information about the index.
+        
+        Returns:
+            Dictionary with index information
+        """
+        return {
+            "total_vectors": self.index.ntotal,
+            "dimension": self.dimension,
+            "m": self.m,
+            "is_trained": self.index.is_trained
+        }
+    
+    def size(self) -> int:
+        """
+        Get the number of vectors in the index.
+        
+        Returns:
+            Number of vectors in the index
+        """
+        return self.index.ntotal
