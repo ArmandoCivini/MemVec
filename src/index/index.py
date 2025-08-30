@@ -25,21 +25,33 @@ class HNSWIndex:
         """
         self.dimension = dimension
         self.m = m
-        self.index = faiss.IndexHNSWFlat(dimension, m)
+        
+        # Base index (stores vectors internally)
+        base_index = faiss.IndexHNSWFlat(dimension, m)
+        
+        # Wrap with ID mapping (decouples storage from index)
+        self.index = faiss.IndexIDMap2(base_index)
     
     def add_vectors(self, vectors: List[Vector]) -> None:
         """
-        Add vectors to the index.
+        Add vectors to the index using their own index values.
         
         Args:
-            vectors: List of Vector objects to add
+            vectors: List of Vector objects to add (all vectors must have an index)
         """
         if not vectors:
             return
         
-        # Convert vectors to numpy array
-        embeddings = np.array([vector.values for vector in vectors], dtype=np.float32)
-        self.index.add(embeddings)
+        # Extract embeddings and indices in single iteration using zip and unpacking
+        embeddings_and_ids = [(vector.values, vector.index) for vector in vectors]
+        embeddings, vector_ids = zip(*embeddings_and_ids)
+        
+        # Convert to numpy arrays
+        embeddings = np.array(embeddings, dtype=np.float32)
+        vector_ids = np.array(vector_ids, dtype=np.int64)
+        
+        # Add embeddings to FAISS with vector IDs
+        self.index.add_with_ids(embeddings, vector_ids)
     
     def search(self, query_vector: Vector, k: int = 5) -> Tuple[List[float], List[int]]:
         """
@@ -50,7 +62,7 @@ class HNSWIndex:
             k: Number of nearest neighbors to return
             
         Returns:
-            Tuple of (distances, indices)
+            Tuple of (distances, vector_ids)
         """
         query_embedding = np.array([query_vector.values], dtype=np.float32)
         distances, indices = self.index.search(query_embedding, k)
@@ -65,7 +77,7 @@ class HNSWIndex:
             k: Number of nearest neighbors to return for each query
             
         Returns:
-            Tuple of (distances, indices) where each is a list of lists
+            Tuple of (distances, vector_ids) where each is a list of lists
         """
         if not query_vectors:
             return [], []

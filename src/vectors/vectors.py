@@ -14,7 +14,7 @@ class Vector:
     Simple vector class for storing embeddings with metadata.
     """
     
-    def __init__(self, id: str, values: List[float], metadata: Optional[Dict[str, Any]] = None):
+    def __init__(self, id: str, values: List[float], metadata: Optional[Dict[str, Any]] = None, index: Optional[int] = None):
         """
         Initialize a Vector instance.
         
@@ -22,10 +22,12 @@ class Vector:
             id: Unique identifier for the vector
             values: The embedding values as a list of floats
             metadata: Optional dictionary with extra info (default empty)
+            index: Optional integer index for FAISS storage (default None)
         """
         self.id = id
         self.values = values
         self.metadata = metadata or {}
+        self.index = index
     
     def to_numpy(self) -> np.ndarray:
         """
@@ -38,4 +40,4 @@ class Vector:
     
     def __repr__(self) -> str:
         """String representation of the vector."""
-        return f"Vector(id='{self.id}', dim={len(self.values)}, metadata_keys={list(self.metadata.keys())})"
+        return f"Vector(id='{self.id}', dim={len(self.values)}, index={self.index}, metadata_keys={list(self.metadata.keys())})"
