@@ -27,7 +27,7 @@ def test_process_file(file_path: str):
         # Show details of first few vectors
         for i, vector in enumerate(vectors[:3]):  # Show first 3 vectors
             print(f"\nVector {i+1}:")
-            print(f"  ID: {vector.id}")
+            print(f"  Index: {vector.index}")
             print(f"  Embedding dimension: {len(vector.values)}")
             print(f"  Source file: {vector.metadata.get('source_file', 'N/A')}")
             print(f"  Chunk index: {vector.metadata.get('chunk_index', 'N/A')}")

@@ -18,13 +18,12 @@ class Vector:
     The pointer encodes document, chunk, and offset information for storage management.
     """
     
-    def __init__(self, id: str, values: List[float], document: int = None, chunk: int = None, offset: int = None, 
+    def __init__(self, values: List[float], document: int = None, chunk: int = None, offset: int = None, 
                  index: int = None, metadata: Optional[Dict[str, Any]] = None):
         """
         Initialize a Vector instance.
         
         Args:
-            id: Unique identifier for the vector
             values: The embedding values as a list of floats
             document: Document number for pointer encoding (if using components)
             chunk: Chunk number for pointer encoding (if using components)
@@ -32,7 +31,6 @@ class Vector:
             index: Raw integer index (alternative to components)
             metadata: Optional dictionary with extra info (default empty)
         """
-        self.id = id
         self.values = values
         self.metadata = metadata or {}
         
@@ -81,4 +79,4 @@ class Vector:
     
     def __repr__(self) -> str:
         """String representation of the vector."""
-        return f"Vector(id='{self.id}', dim={len(self.values)}, doc={self.document}, chunk={self.chunk}, offset={self.offset}, index={self.index})"
+        return f"Vector(dim={len(self.values)}, doc={self.document}, chunk={self.chunk}, offset={self.offset}, index={self.index})"

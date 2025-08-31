@@ -19,9 +19,9 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     
     # Create test Vector objects
     test_vectors = [
-        Vector(id="vec-1", values=[1.0, 2.0, 3.0]),
-        Vector(id="vec-2", values=[4.0, 5.0, 6.0]),
-        Vector(id="vec-3", values=[7.0, 8.0, 9.0])
+        Vector(values=[1.0, 2.0, 3.0], document=1, chunk=0, offset=0),
+        Vector(values=[4.0, 5.0, 6.0], document=1, chunk=0, offset=1),
+        Vector(values=[7.0, 8.0, 9.0], document=1, chunk=0, offset=2)
     ]
     
     # Choose S3 client

@@ -17,7 +17,6 @@ def test_vector_with_pointer():
     
     # Create vector with pointer components
     vec = Vector(
-        id="test-vec",
         values=[1.0, 2.0, 3.0],
         document=100,
         chunk=50,
@@ -43,7 +42,6 @@ def test_get_pointer_components():
     """Test getting pointer components from vector."""
     
     vec = Vector(
-        id="test-components",
         values=[7.0, 8.0, 9.0],
         document=200,
         chunk=75,
@@ -62,7 +60,7 @@ def test_set_pointer_components():
     """Test setting pointer components on existing vector."""
     
     # Create vector with initial pointer
-    vec = Vector(id="update-test", values=[1.0, 2.0, 3.0], document=1, chunk=1, offset=1)
+    vec = Vector(values=[1.0, 2.0, 3.0], document=1, chunk=1, offset=1)
     
     # Set new pointer components
     vec.set_pointer_components(300, 100, 5)
@@ -89,7 +87,6 @@ def test_index_decode_consistency():
     
     for doc, chunk, offset in test_cases:
         vec = Vector(
-            id=f"test-{doc}-{chunk}-{offset}",
             values=[1.0, 2.0],
             document=doc,
             chunk=chunk,
@@ -114,7 +111,6 @@ def test_vector_with_unified_index():
     
     # Create vector using raw integer index (like what FAISS search would return)
     vec = Vector(
-        id="unified-test",
         values=[4.0, 5.0, 6.0],
         index=raw_index  # Raw integer, not Pointer object
     )

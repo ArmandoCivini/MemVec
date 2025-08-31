@@ -4,11 +4,11 @@ File processing functionality for MemVec.
 This module processes files and converts them into Vector objects.
 """
 
-import uuid
 from typing import List, Callable
 from sentence_transformers import SentenceTransformer
 import PyPDF2
 from ..vectors.vectors import Vector
+from ..vectors.pointer import generate_document_id
 
 
 import re
@@ -86,15 +86,23 @@ def process_file(
     # Generate embeddings
     embeddings = embedding_generator(text_chunks)
     
+    # Generate document ID for this file
+    document_id = generate_document_id()
+    
     # Create Vector objects
     vectors = []
     for i, (text, embedding) in enumerate(zip(text_chunks, embeddings)):
-        vector_id = f"{uuid.uuid4()}"
         metadata = {
             "source_file": file_path,
             "chunk_index": i,
             "text": text[:200] + "..." if len(text) > 200 else text
         }
-        vectors.append(Vector(id=vector_id, values=embedding, metadata=metadata))
+        vectors.append(Vector(
+            values=embedding, 
+            document=document_id,
+            chunk=0,  # Single chunk for now
+            offset=i,
+            metadata=metadata
+        ))
     
     return vectors

@@ -18,11 +18,11 @@ def test_index_operations():
     
     # Create test Vector objects with 3-dimensional embeddings and explicit indices
     test_vectors = [
-        Vector(id="vec-1", values=[1.0, 0.0, 0.0], index=100),
-        Vector(id="vec-2", values=[0.0, 1.0, 0.0], index=200),
-        Vector(id="vec-3", values=[0.0, 0.0, 1.0], index=300),
-        Vector(id="vec-4", values=[1.0, 1.0, 0.0], index=400),
-        Vector(id="vec-5", values=[0.5, 0.5, 0.5], index=500)
+        Vector(values=[1.0, 0.0, 0.0], index=100),
+        Vector(values=[0.0, 1.0, 0.0], index=200),
+        Vector(values=[0.0, 0.0, 1.0], index=300),
+        Vector(values=[1.0, 1.0, 0.0], index=400),
+        Vector(values=[0.5, 0.5, 0.5], index=500)
     ]
     
     # Create HNSW index
@@ -50,7 +50,7 @@ def test_index_operations():
     print("✓ Vector count verified after addition")
     
     # Test search with query vector similar to vec-1
-    query_vector = Vector(id="query", values=[0.9, 0.1, 0.1])
+    query_vector = Vector(values=[0.9, 0.1, 0.1], document=0, chunk=0, offset=0)
     distances, vector_ids = index.search(query_vector, k=3)
     
     # Check search results
@@ -66,7 +66,7 @@ def test_index_operations():
     print("✓ Search with k=5 returned correct number of results")
     
     # Test search with vector in the middle
-    middle_query = Vector(id="middle-query", values=[0.3, 0.3, 0.3])
+    middle_query = Vector(values=[0.3, 0.3, 0.3], document=0, chunk=0, offset=0)
     distances_middle, vector_ids_middle = index.search(middle_query, k=2)
     assert len(distances_middle) == 2
     print(f"✓ Middle search found vectors with IDs {vector_ids_middle}")
@@ -93,14 +93,14 @@ def test_single_vector_operations():
     index = HNSWIndex(dimension=2)
     
     # Add single vector with explicit index
-    single_vector = [Vector(id="single", values=[1.0, 2.0], index=999)]
+    single_vector = [Vector(values=[1.0, 2.0], index=999)]
     index.add_vectors(single_vector)
     
     assert index.size() == 1
     print("✓ Single vector addition successful")
     
     # Search with single vector in index
-    query = Vector(id="query", values=[1.1, 2.1])
+    query = Vector(values=[1.1, 2.1], document=0, chunk=0, offset=0)
     distances, vector_ids = index.search(query, k=1)
     
     assert len(distances) == 1
@@ -118,10 +118,10 @@ def test_multi_search():
     index = HNSWIndex(dimension=3)
     
     test_vectors = [
-        Vector(id="vec-1", values=[1.0, 0.0, 0.0], index=101),
-        Vector(id="vec-2", values=[0.0, 1.0, 0.0], index=102),
-        Vector(id="vec-3", values=[0.0, 0.0, 1.0], index=103),
-        Vector(id="vec-4", values=[1.0, 1.0, 0.0], index=104)
+        Vector(values=[1.0, 0.0, 0.0], index=101),
+        Vector(values=[0.0, 1.0, 0.0], index=102),
+        Vector(values=[0.0, 0.0, 1.0], index=103),
+        Vector(values=[1.0, 1.0, 0.0], index=104)
     ]
     
     index.add_vectors(test_vectors)
@@ -129,9 +129,9 @@ def test_multi_search():
     
     # Create multiple query vectors
     query_vectors = [
-        Vector(id="query-1", values=[0.9, 0.1, 0.0]),  # Similar to vec-1
-        Vector(id="query-2", values=[0.1, 0.9, 0.0]),  # Similar to vec-2
-        Vector(id="query-3", values=[0.5, 0.5, 0.0])   # Similar to vec-4
+        Vector(values=[0.9, 0.1, 0.0], document=0, chunk=0, offset=0),  # Similar to vec-1
+        Vector(values=[0.1, 0.9, 0.0], document=0, chunk=0, offset=1),  # Similar to vec-2
+        Vector(values=[0.5, 0.5, 0.0], document=0, chunk=0, offset=2)   # Similar to vec-4
     ]
     
     # Perform multi-search
