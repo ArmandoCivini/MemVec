@@ -87,22 +87,16 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     assert list(downloaded_vectors[1]) == [4.0, 5.0, 6.0]
     assert list(downloaded_vectors[2]) == [7.0, 8.0, 9.0]
     print("✓ Data integrity verified")
-    
-    return True
 
 
-if __name__ == "__main__":
-    # Set this flag to True to test with real S3
-    USE_REAL_S3 = False
-    # Bucket name for testing
-    TEST_BUCKET_NAME = "memvec-chunk-test-bucket"
-    
-    print("Vector Chunk Upload Test")
-    print("=" * 30)
-    
-    success = test_chunk_upload_download(use_real_s3=USE_REAL_S3, bucket_name=TEST_BUCKET_NAME)
-    
-    if success:
-        print("\n✓ All tests passed!")
-    else:
-        print("\n✗ Test failed!")
+def test_chunk_upload_download_real_s3():
+    """Test with real S3 if configured."""
+    test_chunk_upload_download(use_real_s3=True, bucket_name="memvec-chunk-test-bucket")
+
+
+def test_chunk_upload_download_mock():
+    """Test with mocked S3."""
+    test_chunk_upload_download(use_real_s3=False, bucket_name="memvec-chunk-test-bucket")
+
+
+

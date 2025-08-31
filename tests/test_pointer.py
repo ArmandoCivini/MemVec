@@ -36,11 +36,9 @@ def test_encode_decode():
         assert decoded_offset == offset, f"Offset mismatch: {decoded_offset} != {offset}"
         
         print(f"✓ Encode/decode test passed for ({doc}, {chunk}, {offset}) -> {index}")
-    
-    return True
 
 
-def test_limits():
+def test_document_id_generator():
     """Test the document ID generator."""
     
     # Test document ID generation
@@ -49,8 +47,6 @@ def test_limits():
         assert 0 <= doc_id <= Pointer.MAX_DOCUMENT, f"Generated doc_id {doc_id} out of range"
     
     print(f"✓ Document ID generator produces valid values (0 to {Pointer.MAX_DOCUMENT})")
-    
-    return True
 
 
 def test_get_limits():
@@ -65,8 +61,6 @@ def test_get_limits():
     
     print(f"✓ Limits: {limits}")
     print(f"✓ Total theoretical capacity: {limits['total_capacity']:,} vectors")
-    
-    return True
 
 
 def test_bit_allocation():
@@ -89,35 +83,4 @@ def test_bit_allocation():
     assert max_values["document"] == Pointer.MAX_DOCUMENT
     
     print(f"✓ Bit allocation verified: {DOCUMENT_BITS}+{CHUNK_BITS}+{OFFSET_BITS} = {total_bits} bits")
-    
-    return True
 
-
-if __name__ == "__main__":
-    print("Pointer Class Tests")
-    print("=" * 20)
-    
-    try:
-        test_results = []
-        
-        print("\n1. Testing encode/decode operations...")
-        test_results.append(test_encode_decode())
-        
-        print("\n2. Testing document ID generator...")
-        test_results.append(test_limits())
-        
-        print("\n3. Testing get_limits method...")
-        test_results.append(test_get_limits())
-        
-        print("\n4. Testing bit allocation...")
-        test_results.append(test_bit_allocation())
-        
-        if all(test_results):
-            print("\n✓ All tests passed!")
-        else:
-            print("\n✗ Some tests failed!")
-            
-    except Exception as e:
-        print(f"\n✗ Test failed with error: {e}")
-        import traceback
-        traceback.print_exc()

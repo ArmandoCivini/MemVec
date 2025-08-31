@@ -11,49 +11,57 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.processes.process_file import process_file
 
 
-def test_process_file(file_path: str):
-    """Test processing a file and creating Vector objects."""
+def test_process_file(test_file_path="datasets/attention.pdf"):
+    """Test the complete file processing workflow."""
     
-    print(f"Processing file: {file_path}")
-    print("=" * 50)
+    print(f"Testing process_file with: {test_file_path}")
     
-    try:
-        # Process the file
-        vectors = process_file(file_path)
+    # Process the file
+    vectors = process_file(test_file_path)
+    
+    # Verify result is a list of vectors
+    assert isinstance(vectors, list)
+    assert len(vectors) > 0
+    print(f"✓ File processed successfully, got {len(vectors)} vectors")
+    
+    # Verify all items are Vector objects
+    for i, vector in enumerate(vectors):
+        assert hasattr(vector, 'values'), f"Vector {i} missing values attribute"
+        assert hasattr(vector, 'document'), f"Vector {i} missing document attribute"
+        assert hasattr(vector, 'chunk'), f"Vector {i} missing chunk attribute"
+        assert hasattr(vector, 'offset'), f"Vector {i} missing offset attribute"
+        assert hasattr(vector, 'metadata'), f"Vector {i} missing metadata attribute"
         
-        print(f"✓ Successfully processed file")
-        print(f"✓ Generated {len(vectors)} vectors")
+        # Verify types
+        assert isinstance(vector.values, list), f"Vector {i} values should be list"
+        assert isinstance(vector.document, int), f"Vector {i} document should be int"
+        assert isinstance(vector.chunk, int), f"Vector {i} chunk should be int"
+        assert isinstance(vector.offset, int), f"Vector {i} offset should be int"
+        assert isinstance(vector.metadata, dict), f"Vector {i} metadata should be dict"
         
-        # Show details of first few vectors
-        for i, vector in enumerate(vectors[:3]):  # Show first 3 vectors
-            print(f"\nVector {i+1}:")
-            print(f"  Index: {vector.index}")
-            print(f"  Embedding dimension: {len(vector.values)}")
-            print(f"  Source file: {vector.metadata.get('source_file', 'N/A')}")
-            print(f"  Chunk index: {vector.metadata.get('chunk_index', 'N/A')}")
-            print(f"  Text preview: {vector.metadata.get('text', 'N/A')[:100]}...")
+        # Verify embedding dimensions (should be 384 for all-MiniLM-L6-v2)
+        assert len(vector.values) == 384, f"Vector {i} should have 384 dimensions"
         
-        if len(vectors) > 3:
-            print(f"\n... and {len(vectors) - 3} more vectors")
+        # Verify metadata structure
+        assert 'source_file' in vector.metadata, f"Vector {i} metadata missing source_file"
+        assert 'chunk_index' in vector.metadata, f"Vector {i} metadata missing chunk_index" 
+        assert 'text' in vector.metadata, f"Vector {i} metadata missing text"
         
-        print(f"\n✓ Test completed successfully!")
-        return True
-        
-    except Exception as e:
-        print(f"✗ Error processing file: {str(e)}")
-        return False
+        # Verify offset matches chunk_index
+        assert vector.offset == vector.metadata['chunk_index'], f"Vector {i} offset should match chunk_index"
+    
+    # Check that all vectors have same document ID but different offsets
+    document_ids = [v.document for v in vectors]
+    assert len(set(document_ids)) == 1, "All vectors should have same document ID"
+    
+    offsets = [v.offset for v in vectors]
+    assert len(set(offsets)) == len(vectors), "All vectors should have unique offsets"
+    assert sorted(offsets) == list(range(len(vectors))), "Offsets should be sequential starting from 0"
+    
+    print(f"✓ All {len(vectors)} vectors have correct structure")
+    print(f"  Document ID: {vectors[0].document}")
+    print(f"  Offsets: 0 to {len(vectors)-1}")
+    print(f"  Sample text: {vectors[0].metadata['text'][:50]}...")
 
 
-if __name__ == "__main__":
-    # Test file path - can be changed to test different files
-    TEST_FILE_PATH = "datasets/attention.pdf"
-    
-    print("Process File Test")
-    print("=" * 30)
-    
-    success = test_process_file(TEST_FILE_PATH)
-    
-    if success:
-        print("\n✓ All tests passed!")
-    else:
-        print("\n✗ Test failed!")
+

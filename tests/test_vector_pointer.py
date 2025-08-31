@@ -34,8 +34,6 @@ def test_vector_with_pointer():
     assert vec.index == expected_index
     
     print(f"✓ Vector with pointer created: {vec}")
-    
-    return True
 
 
 def test_get_pointer_components():
@@ -52,8 +50,6 @@ def test_get_pointer_components():
     assert components == (200, 75, 10)
     
     print(f"✓ Retrieved pointer components: {components}")
-    
-    return True
 
 
 def test_set_pointer_components():
@@ -72,8 +68,6 @@ def test_set_pointer_components():
     assert vec.index == Pointer.encode(300, 100, 5)
     
     print(f"✓ Updated vector with pointer: {vec}")
-    
-    return True
 
 
 def test_index_decode_consistency():
@@ -98,8 +92,6 @@ def test_index_decode_consistency():
         assert decoded == (doc, chunk, offset)
         
         print(f"✓ Encode/decode consistency for ({doc}, {chunk}, {offset})")
-    
-    return True
 
 
 def test_vector_with_unified_index():
@@ -128,38 +120,6 @@ def test_vector_with_unified_index():
     print(f"✓ Vector with raw integer index created: {vec}")
     print(f"✓ Raw index: {raw_index}")
     print(f"✓ Components correctly decoded: doc={vec.document}, chunk={vec.chunk}, offset={vec.offset}")
-    
-    return True
 
 
-if __name__ == "__main__":
-    print("Vector-Pointer Integration Tests")
-    print("=" * 35)
-    
-    try:
-        test_results = []
-        
-        print("\n1. Testing vector with pointer...")
-        test_results.append(test_vector_with_pointer())
-        
-        print("\n2. Testing get pointer components...")
-        test_results.append(test_get_pointer_components())
-        
-        print("\n3. Testing set pointer components...")
-        test_results.append(test_set_pointer_components())
-        
-        print("\n4. Testing encode/decode consistency...")
-        test_results.append(test_index_decode_consistency())
-        
-        print("\n5. Testing vector with unified index...")
-        test_results.append(test_vector_with_unified_index())
-        
-        if all(test_results):
-            print("\n✓ All integration tests passed!")
-        else:
-            print("\n✗ Some tests failed!")
-            
-    except Exception as e:
-        print(f"\n✗ Test failed with error: {e}")
-        import traceback
-        traceback.print_exc()
+
