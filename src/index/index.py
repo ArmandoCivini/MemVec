@@ -8,6 +8,7 @@ import faiss
 import numpy as np
 from typing import List, Tuple, Optional
 from ..vectors.vectors import Vector
+from ..config.contants import DEFAULT_HNSW_M, DEFAULT_SEARCH_K
 
 
 class HNSWIndex:
@@ -15,13 +16,13 @@ class HNSWIndex:
     FAISS HNSW index manager for vector search.
     """
     
-    def __init__(self, dimension: int, m: int = 16):
+    def __init__(self, dimension: int, m: int = DEFAULT_HNSW_M):
         """
         Initialize HNSW index.
         
         Args:
             dimension: Vector dimension
-            m: Number of connections per node (default 16)
+            m: Number of connections per node (default from config)
         """
         self.dimension = dimension
         self.m = m
@@ -53,7 +54,7 @@ class HNSWIndex:
         # Add embeddings to FAISS with vector IDs
         self.index.add_with_ids(embeddings, vector_ids)
     
-    def search(self, query_vector: Vector, k: int = 5) -> Tuple[List[float], List[int]]:
+    def search(self, query_vector: Vector, k: int = DEFAULT_SEARCH_K) -> Tuple[List[float], List[int]]:
         """
         Search the index for similar vectors.
         
@@ -68,7 +69,7 @@ class HNSWIndex:
         distances, indices = self.index.search(query_embedding, k)
         return distances[0].tolist(), indices[0].tolist()
     
-    def multi_search(self, query_vectors: List[Vector], k: int = 5) -> Tuple[List[List[float]], List[List[int]]]:
+    def multi_search(self, query_vectors: List[Vector], k: int = DEFAULT_SEARCH_K) -> Tuple[List[List[float]], List[List[int]]]:
         """
         Search the index for similar vectors using multiple query vectors.
         

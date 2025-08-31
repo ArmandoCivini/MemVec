@@ -9,6 +9,12 @@ from sentence_transformers import SentenceTransformer
 import PyPDF2
 from ..vectors.vectors import Vector
 from ..vectors.pointer import generate_document_id
+from ..config.contants import (
+    MAX_VECTORS_PER_CHUNK, 
+    DEFAULT_TEXT_CHUNK_SIZE, 
+    DEFAULT_TEXT_OVERLAP,
+    METADATA_TEXT_PREVIEW_LENGTH
+)
 
 
 import re
@@ -16,7 +22,7 @@ from typing import List
 import PyPDF2
 
 
-def extract_text_from_pdf(file_path: str, chunk_size: int = 300, overlap: int = 50) -> List[str]:
+def extract_text_from_pdf(file_path: str, chunk_size: int = DEFAULT_TEXT_CHUNK_SIZE, overlap: int = DEFAULT_TEXT_OVERLAP) -> List[str]:
     """Extract text chunks from PDF file with sentence-aware splitting."""
     chunks = []
     with open(file_path, 'rb') as file:
@@ -70,7 +76,7 @@ def process_file(
     embedding_generator: Callable[[List[str]], List[List[float]]] = create_embeddings_with_sentence_transformer
 ) -> List[Vector]:
     """
-    Process a file and return Vector objects.
+    Process a file and return Vector objects with proper chunking.
     
     Args:
         file_path: Path to the file to process
@@ -89,20 +95,31 @@ def process_file(
     # Generate document ID for this file
     document_id = generate_document_id()
     
-    # Create Vector objects
+    # Create Vector objects with proper chunking
     vectors = []
+    current_chunk = 0
+    current_offset = 0
+    
     for i, (text, embedding) in enumerate(zip(text_chunks, embeddings)):
+        # Check if we need to move to next chunk
+        if current_offset >= MAX_VECTORS_PER_CHUNK:
+            current_chunk += 1
+            current_offset = 0
+        
         metadata = {
             "source_file": file_path,
-            "chunk_index": i,
-            "text": text[:200] + "..." if len(text) > 200 else text
+            "text_index": i,  # Original index in the text chunks
+            "text": text[:METADATA_TEXT_PREVIEW_LENGTH] + "..." if len(text) > METADATA_TEXT_PREVIEW_LENGTH else text
         }
+        
         vectors.append(Vector(
             values=embedding, 
             document=document_id,
-            chunk=0,  # Single chunk for now
-            offset=i,
+            chunk=current_chunk,
+            offset=current_offset,
             metadata=metadata
         ))
+        
+        current_offset += 1
     
     return vectors

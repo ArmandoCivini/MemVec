@@ -44,23 +44,29 @@ def test_process_file(test_file_path="datasets/attention.pdf"):
         
         # Verify metadata structure
         assert 'source_file' in vector.metadata, f"Vector {i} metadata missing source_file"
-        assert 'chunk_index' in vector.metadata, f"Vector {i} metadata missing chunk_index" 
+        assert 'text_index' in vector.metadata, f"Vector {i} metadata missing text_index" 
         assert 'text' in vector.metadata, f"Vector {i} metadata missing text"
-        
-        # Verify offset matches chunk_index
-        assert vector.offset == vector.metadata['chunk_index'], f"Vector {i} offset should match chunk_index"
     
-    # Check that all vectors have same document ID but different offsets
+    # Check that all vectors have same document ID 
     document_ids = [v.document for v in vectors]
     assert len(set(document_ids)) == 1, "All vectors should have same document ID"
     
-    offsets = [v.offset for v in vectors]
-    assert len(set(offsets)) == len(vectors), "All vectors should have unique offsets"
-    assert sorted(offsets) == list(range(len(vectors))), "Offsets should be sequential starting from 0"
+    # Check chunking logic - offsets should reset when chunk changes
+    chunks_and_offsets = [(v.chunk, v.offset) for v in vectors]
+    
+    # Verify offsets are sequential within each chunk
+    current_chunk = -1
+    expected_offset = 0
+    for chunk, offset in chunks_and_offsets:
+        if chunk != current_chunk:
+            current_chunk = chunk
+            expected_offset = 0
+        assert offset == expected_offset, f"Offset {offset} should be {expected_offset} in chunk {chunk}"
+        expected_offset += 1
     
     print(f"✓ All {len(vectors)} vectors have correct structure")
     print(f"  Document ID: {vectors[0].document}")
-    print(f"  Offsets: 0 to {len(vectors)-1}")
+    print(f"  Number of chunks: {max(v.chunk for v in vectors) + 1}")
     print(f"  Sample text: {vectors[0].metadata['text'][:50]}...")
 
 
