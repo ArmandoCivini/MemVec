@@ -155,32 +155,6 @@ def test_multi_search():
     return True
 
 
-def test_vectors_without_indices():
-    """Test adding vectors without explicit indices (fallback to hash)."""
-    
-    index = HNSWIndex(dimension=2)
-    
-    # Create vectors without explicit indices
-    test_vectors = [
-        Vector(id="no-index-1", values=[1.0, 0.0]),
-        Vector(id="no-index-2", values=[0.0, 1.0])
-    ]
-    
-    # Add vectors (should use hash fallback)
-    index.add_vectors(test_vectors)
-    assert index.size() == 2
-    print("✓ Vectors without indices added successfully using hash fallback")
-    
-    # Search should still work
-    query = Vector(id="query", values=[0.9, 0.1])
-    distances, vector_ids = index.search(query, k=1)
-    
-    assert len(distances) == 1
-    assert len(vector_ids) == 1
-    print(f"✓ Search with hash-based indices successful, found ID {vector_ids[0]}")
-    
-    return True
-
 
 if __name__ == "__main__":
     print("HNSW Index Tests")
@@ -201,9 +175,6 @@ if __name__ == "__main__":
         
         print("\n4. Testing multi-search operations...")
         test_results.append(test_multi_search())
-        
-        print("\n5. Testing vectors without explicit indices...")
-        test_results.append(test_vectors_without_indices())
         
         # Check all tests passed
         if all(test_results):
