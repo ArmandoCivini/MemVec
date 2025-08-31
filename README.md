@@ -201,3 +201,19 @@ This project is a weekend POC. Contributions welcome — open issues for ideas o
 ---
 
 *Created as a concise starter README for a POC vector cache leveraging S3 Vectors and an in-memory ANN/cache layer.*
+
+
+# TODO: Development Roadmap
+
+## Critical Work (MVP Requirements)
+
+- [ ] **Add cache layer**: implement a cache layer between the index fetching and the s3 storage
+
+## Enhancements (Performance & Features)
+
+- [ ] **Add template classes**: Add template classes in dependencies that can be tweaked with like the index algo and the embedding's algorithm
+
+## Nice to Haves (Future Improvements)
+
+- [ ] **Web Dashboard**: Build a simple UI for monitoring cache performance and statistics
+
