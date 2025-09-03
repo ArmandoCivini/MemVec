@@ -27,3 +27,5 @@ MemVec allows developers to store and retrieve vector embeddings efficiently by 
 * Prioritize **clarity over optimization** (this is a proof-of-concept, not production).
 * Write clean, well-documented, idiomatic Python code.
 * Provide minimal working examples with each implemented step.
+* Dont make things optional unless stated so. Dont add unnecessary checks.
+* Keep the code simple and minimal.
