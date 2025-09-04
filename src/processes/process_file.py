@@ -24,7 +24,7 @@ class FileProcessor:
         """Get the required index dimension based on the embedding generator."""
         return self.embedding_generator.dimension
     
-    def process_file(self, file_path: str, index: HNSWIndex) -> List[Vector]:
+    def process_file(self, file_path: str, index: HNSWIndex) -> List[List[Vector]]:
         """
         Process a file and return Vector objects with proper chunking.
         Adds vectors to the provided index.
@@ -34,7 +34,7 @@ class FileProcessor:
             index: HNSW index to add vectors to
             
         Returns:
-            List of Vector objects
+            List of lists of Vector objects, where each inner list represents one chunk
         """
         # Extract text chunks
         text_chunks = self.text_extractor.extract(file_path)
@@ -46,13 +46,17 @@ class FileProcessor:
         document_id = generate_document_id()
         
         # Create Vector objects with proper chunking
-        vectors = []
+        chunks = []  # List of lists of vectors
+        current_chunk_vectors = []  # Current chunk being built
         current_chunk = 0
         current_offset = 0
         
         for i, (text, embedding) in enumerate(zip(text_chunks, embeddings)):
             # Check if we need to move to next chunk
             if current_offset >= MAX_VECTORS_PER_CHUNK:
+                # Save current chunk and start new one
+                chunks.append(current_chunk_vectors)
+                current_chunk_vectors = []
                 current_chunk += 1
                 current_offset = 0
             
@@ -62,24 +66,30 @@ class FileProcessor:
                 "text": text[:METADATA_TEXT_PREVIEW_LENGTH] + "..." if len(text) > METADATA_TEXT_PREVIEW_LENGTH else text
             }
             
-            vectors.append(Vector(
+            vector = Vector(
                 values=embedding, 
                 document=document_id,
                 chunk=current_chunk,
                 offset=current_offset,
                 metadata=metadata
-            ))
+            )
             
+            current_chunk_vectors.append(vector)
             current_offset += 1
         
-        # Add vectors to index
-        index.add_vectors(vectors)
+        # Add the last chunk if it has vectors
+        if current_chunk_vectors:
+            chunks.append(current_chunk_vectors)
         
-        return vectors
+        # Flatten all vectors for adding to index
+        all_vectors = [vector for chunk in chunks for vector in chunk]
+        index.add_vectors(all_vectors)
+        
+        return chunks
 
 
 # Convenience function for backward compatibility
-def process_file(file_path: str, index: HNSWIndex) -> List[Vector]:
+def process_file(file_path: str, index: HNSWIndex) -> List[List[Vector]]:
     """
     Process a file using default components.
     
@@ -88,7 +98,7 @@ def process_file(file_path: str, index: HNSWIndex) -> List[Vector]:
         index: HNSW index to add vectors to
         
     Returns:
-        List of Vector objects
+        List of lists of Vector objects, where each inner list represents one chunk
     """
     text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()

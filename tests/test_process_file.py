@@ -28,62 +28,63 @@ def test_process_file(test_file_path="datasets/attention.pdf"):
     index = HNSWIndex(dimension=dimension)
     
     # Process the file
-    vectors = processor.process_file(test_file_path, index)
+    chunks = processor.process_file(test_file_path, index)
     
-    # Verify result is a list of vectors
-    assert isinstance(vectors, list)
-    assert len(vectors) > 0
-    print(f"✓ File processed successfully, got {len(vectors)} vectors")
+    # Verify result is a list of chunks (lists of vectors)
+    assert isinstance(chunks, list)
+    assert len(chunks) > 0
     
-    # Verify all items are Vector objects
-    for i, vector in enumerate(vectors):
-        assert hasattr(vector, 'values'), f"Vector {i} missing values attribute"
-        assert hasattr(vector, 'document'), f"Vector {i} missing document attribute"
-        assert hasattr(vector, 'chunk'), f"Vector {i} missing chunk attribute"
-        assert hasattr(vector, 'offset'), f"Vector {i} missing offset attribute"
-        assert hasattr(vector, 'metadata'), f"Vector {i} missing metadata attribute"
+    # Flatten chunks to get all vectors for testing
+    all_vectors = [vector for chunk in chunks for vector in chunk]
+    
+    print(f"✓ File processed successfully, got {len(chunks)} chunks with {len(all_vectors)} total vectors")
+    
+    # Verify all chunks contain Vector objects
+    for chunk_idx, chunk in enumerate(chunks):
+        assert isinstance(chunk, list), f"Chunk {chunk_idx} should be a list"
+        assert len(chunk) > 0, f"Chunk {chunk_idx} should not be empty"
         
-        # Verify types
-        assert isinstance(vector.values, list), f"Vector {i} values should be list"
-        assert isinstance(vector.document, int), f"Vector {i} document should be int"
-        assert isinstance(vector.chunk, int), f"Vector {i} chunk should be int"
-        assert isinstance(vector.offset, int), f"Vector {i} offset should be int"
-        assert isinstance(vector.metadata, dict), f"Vector {i} metadata should be dict"
-        
-        # Verify embedding dimensions - use actual dimension from processor
-        expected_dimension = processor.get_index_dimension()
-        assert len(vector.values) == expected_dimension, f"Vector {i} should have {expected_dimension} dimensions"
-        
-        # Verify metadata structure
-        assert 'source_file' in vector.metadata, f"Vector {i} metadata missing source_file"
-        assert 'text_index' in vector.metadata, f"Vector {i} metadata missing text_index" 
-        assert 'text' in vector.metadata, f"Vector {i} metadata missing text"
+        for i, vector in enumerate(chunk):
+            assert hasattr(vector, 'values'), f"Vector {i} in chunk {chunk_idx} missing values attribute"
+            assert hasattr(vector, 'document'), f"Vector {i} in chunk {chunk_idx} missing document attribute"
+            assert hasattr(vector, 'chunk'), f"Vector {i} in chunk {chunk_idx} missing chunk attribute"
+            assert hasattr(vector, 'offset'), f"Vector {i} in chunk {chunk_idx} missing offset attribute"
+            assert hasattr(vector, 'metadata'), f"Vector {i} in chunk {chunk_idx} missing metadata attribute"
+            
+            # Verify types
+            assert isinstance(vector.values, list), f"Vector {i} in chunk {chunk_idx} values should be list"
+            assert isinstance(vector.document, int), f"Vector {i} in chunk {chunk_idx} document should be int"
+            assert isinstance(vector.chunk, int), f"Vector {i} in chunk {chunk_idx} chunk should be int"
+            assert isinstance(vector.offset, int), f"Vector {i} in chunk {chunk_idx} offset should be int"
+            assert isinstance(vector.metadata, dict), f"Vector {i} in chunk {chunk_idx} metadata should be dict"
+            
+            # Verify embedding dimensions - use actual dimension from processor
+            expected_dimension = processor.get_index_dimension()
+            assert len(vector.values) == expected_dimension, f"Vector {i} in chunk {chunk_idx} should have {expected_dimension} dimensions"
+            
+            # Verify metadata structure
+            assert 'source_file' in vector.metadata, f"Vector {i} in chunk {chunk_idx} metadata missing source_file"
+            assert 'text_index' in vector.metadata, f"Vector {i} in chunk {chunk_idx} metadata missing text_index" 
+            assert 'text' in vector.metadata, f"Vector {i} in chunk {chunk_idx} metadata missing text"
     
     # Check that all vectors have same document ID 
-    document_ids = [v.document for v in vectors]
+    document_ids = [v.document for v in all_vectors]
     assert len(set(document_ids)) == 1, "All vectors should have same document ID"
     
-    # Check chunking logic - offsets should reset when chunk changes
-    chunks_and_offsets = [(v.chunk, v.offset) for v in vectors]
+    # Check chunking logic - each chunk should have sequential offsets starting from 0
+    for chunk_idx, chunk in enumerate(chunks):
+        for i, vector in enumerate(chunk):
+            assert vector.chunk == chunk_idx, f"Vector in chunk {chunk_idx} should have chunk number {chunk_idx}"
+            assert vector.offset == i, f"Vector at position {i} in chunk {chunk_idx} should have offset {i}"
     
-    # Verify offsets are sequential within each chunk
-    current_chunk = -1
-    expected_offset = 0
-    for chunk, offset in chunks_and_offsets:
-        if chunk != current_chunk:
-            current_chunk = chunk
-            expected_offset = 0
-        assert offset == expected_offset, f"Offset {offset} should be {expected_offset} in chunk {chunk}"
-        expected_offset += 1
-    
-    print(f"✓ All {len(vectors)} vectors have correct structure")
-    print(f"  Document ID: {vectors[0].document}")
-    print(f"  Number of chunks: {max(v.chunk for v in vectors) + 1}")
-    print(f"  Sample text: {vectors[0].metadata['text'][:50]}...")
+    print(f"✓ All {len(all_vectors)} vectors in {len(chunks)} chunks have correct structure")
+    print(f"  Document ID: {all_vectors[0].document}")
+    print(f"  Number of chunks: {len(chunks)}")
+    print(f"  Sample text: {all_vectors[0].metadata['text'][:50]}...")
     print(f"  Embedding dimension: {dimension}")
     
     # Verify vectors were added to index
-    assert index.size() == len(vectors), f"Index should contain exactly {len(vectors)} vectors"
+    assert index.size() == len(all_vectors), f"Index should contain exactly {len(all_vectors)} vectors"
     print(f"✓ Index contains {index.size()} vectors as expected")
 
 
@@ -103,18 +104,21 @@ def test_process_file_with_index(test_file_path="datasets/attention.pdf"):
     initial_size = index.size()
     
     # Process the file with index
-    vectors = processor.process_file(test_file_path, index)
+    chunks = processor.process_file(test_file_path, index)
+    
+    # Flatten chunks to get all vectors
+    all_vectors = [vector for chunk in chunks for vector in chunk]
     
     # Verify vectors were added to index
     final_size = index.size()
-    assert final_size == initial_size + len(vectors), f"Index should contain {len(vectors)} more vectors"
-    assert final_size == len(vectors), f"Index should contain exactly {len(vectors)} vectors"
+    assert final_size == initial_size + len(all_vectors), f"Index should contain {len(all_vectors)} more vectors"
+    assert final_size == len(all_vectors), f"Index should contain exactly {len(all_vectors)} vectors"
     
-    print(f"✓ Index now contains {final_size} vectors")
+    print(f"✓ Index now contains {final_size} vectors from {len(chunks)} chunks")
     
     # Test that we can search the index
-    if len(vectors) > 0:
-        query_vector = vectors[0]  # Use first vector values as query
+    if len(all_vectors) > 0:
+        query_vector = all_vectors[0]  # Use first vector values as query
         distances, vector_ids = index.search(query_vector, k=1)
         
         assert len(distances) == 1, "Should return exactly 1 result"
@@ -122,10 +126,10 @@ def test_process_file_with_index(test_file_path="datasets/attention.pdf"):
         assert distances[0] < 0.001, f"Distance to identical vector should be ~0, got {distances[0]}"
         
         # The returned vector ID should match the index of the first vector
-        assert vector_ids[0] == vectors[0].index, f"Returned ID {vector_ids[0]} should match vector index {vectors[0].index}"
+        assert vector_ids[0] == all_vectors[0].index, f"Returned ID {vector_ids[0]} should match vector index {all_vectors[0].index}"
         
         print(f"✓ Successfully searched index and found matching vector")
-        print(f"  Query vector index: {vectors[0].index}")
+        print(f"  Query vector index: {all_vectors[0].index}")
         print(f"  Found vector ID: {vector_ids[0]}")
         print(f"  Distance: {distances[0]:.6f}")
     
@@ -147,14 +151,17 @@ def test_file_processor_class(test_file_path="datasets/attention.pdf"):
     index = HNSWIndex(dimension=dimension)
     
     # Process file using the class
-    vectors = processor.process_file(test_file_path, index)
+    chunks = processor.process_file(test_file_path, index)
+    
+    # Flatten chunks to get all vectors
+    all_vectors = [vector for chunk in chunks for vector in chunk]
     
     # Verify results
-    assert isinstance(vectors, list)
-    assert len(vectors) > 0
-    assert index.size() == len(vectors)
+    assert isinstance(chunks, list)
+    assert len(chunks) > 0
+    assert index.size() == len(all_vectors)
     
-    print(f"✓ FileProcessor successfully processed {len(vectors)} vectors")
+    print(f"✓ FileProcessor successfully processed {len(all_vectors)} vectors in {len(chunks)} chunks")
     print(f"✓ Embedding dimension from processor: {dimension}")
     print(f"✓ Embedding dimension from generator: {embedding_generator.dimension}")
     print(f"✓ Index contains {index.size()} vectors")

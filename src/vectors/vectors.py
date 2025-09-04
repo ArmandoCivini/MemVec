@@ -35,15 +35,31 @@ class Vector:
         self.metadata = metadata or {}
         
         if index is not None:
-            # Use provided raw integer index and decode components
-            self.index = index
-            self.document, self.chunk, self.offset = Pointer.decode(index)
+            # Create pointer from raw integer index
+            self.pointer = Pointer.from_index(index)
         else:
-            # Use components to encode index
-            self.document = document
-            self.chunk = chunk
-            self.offset = offset
-            self.index = Pointer.encode(document, chunk, offset)
+            # Create pointer from components
+            self.pointer = Pointer(document, chunk, offset)
+    
+    @property
+    def index(self) -> int:
+        """Get the encoded index from the pointer."""
+        return self.pointer.index
+    
+    @property
+    def document(self) -> int:
+        """Get the document number from the pointer."""
+        return self.pointer.document
+    
+    @property
+    def chunk(self) -> int:
+        """Get the chunk number from the pointer."""
+        return self.pointer.chunk
+    
+    @property
+    def offset(self) -> int:
+        """Get the offset from the pointer."""
+        return self.pointer.offset
     
     def to_numpy(self) -> np.ndarray:
         """
@@ -56,26 +72,32 @@ class Vector:
     
     def get_pointer_components(self) -> Tuple[int, int, int]:
         """
-        Get the pointer components (document, chunk, offset) from the index.
+        Get the pointer components (document, chunk, offset).
         
         Returns:
             Tuple of (document, chunk, offset)
         """
-        return Pointer.decode(self.index)
+        return self.pointer.document, self.pointer.chunk, self.pointer.offset
     
     def set_pointer_components(self, document: int, chunk: int, offset: int) -> None:
         """
-        Set the pointer components and update the index.
+        Set the pointer components by creating a new pointer.
         
         Args:
             document: Document number
             chunk: Chunk number
             offset: Offset within chunk
         """
-        self.document = document
-        self.chunk = chunk
-        self.offset = offset
-        self.index = Pointer.encode(document, chunk, offset)
+        self.pointer = Pointer(document, chunk, offset)
+    
+    def get_chunk_id(self) -> int:
+        """
+        Get the chunk ID from the pointer.
+        
+        Returns:
+            Chunk ID as integer
+        """
+        return self.pointer.get_chunk_id()
     
     def __repr__(self) -> str:
         """String representation of the vector."""
