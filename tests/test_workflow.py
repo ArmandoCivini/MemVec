@@ -241,7 +241,7 @@ def test_workflow_with_chunking(test_file_path="datasets/attention.pdf"):
         assert decoded_chunk == i, f"Decoded chunk should be {i}, got {decoded_chunk}"
         
         # Verify S3 key format uses the integer chunk_id
-        expected_s3_key = f"vectors/{chunk_id}.pkl"
+        expected_s3_key = f"chunks/{chunk_id}.pkl"
         assert upload["s3_key"] == expected_s3_key
     
     print(f"✓ Bitwise chunk ID generation and S3 key generation work correctly")
