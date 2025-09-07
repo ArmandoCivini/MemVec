@@ -54,19 +54,19 @@ class HNSWIndex:
         # Add embeddings to FAISS with vector IDs
         self.index.add_with_ids(embeddings, vector_ids)
     
-    def search(self, query_vector: Vector, k: int = DEFAULT_SEARCH_K) -> Tuple[List[float], List[int]]:
+    def search(self, query_embedding: List[float], k: int = DEFAULT_SEARCH_K) -> Tuple[List[float], List[int]]:
         """
         Search the index for similar vectors.
         
         Args:
-            query_vector: Vector to search for
+            query_embedding: List of floats representing the query embedding
             k: Number of nearest neighbors to return
             
         Returns:
             Tuple of (distances, vector_ids)
         """
-        query_embedding = np.array([query_vector.values], dtype=np.float32)
-        distances, indices = self.index.search(query_embedding, k)
+        query_array = np.array([query_embedding], dtype=np.float32)
+        distances, indices = self.index.search(query_array, k)
         return distances[0].tolist(), indices[0].tolist()
     
     def multi_search(self, query_vectors: List[Vector], k: int = DEFAULT_SEARCH_K) -> Tuple[List[List[float]], List[List[int]]]:
