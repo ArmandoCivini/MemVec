@@ -1,36 +1,34 @@
 """
-CacheLayer implementation using LMDB as an embedded key/value store.
+CacheLayer implementation using Redis/FakeRedis as an embedded key/value store.
 """
 
 import pickle
-from typing import Any
-import lmdb
+from typing import Any, Optional
+import redis
+import fakeredis
 
 
 class CacheLayer:
     """
-    A cache layer using LMDB for efficient key-value storage.
+    A cache layer using Redis for efficient key-value storage.
     Uses pickle for serialization/deserialization of Python objects.
+    Can use either real Redis or FakeRedis for testing/development.
     """
     
-    def __init__(self, path: str, map_size: int = int(1e9)):
+    def __init__(self, use_fake: bool = True, host: str = "localhost", port: int = 6379, db: int = 0):
         """
-        Initialize LMDB environment.
+        Initialize Redis client.
         
         Args:
-            path: Directory path where LMDB database will be stored
-            map_size: Maximum size of the database in bytes (default: 1GB)
+            use_fake: If True, use FakeRedis for testing/development
+            host: Redis server host (ignored if use_fake=True)
+            port: Redis server port (ignored if use_fake=True)
+            db: Redis database number
         """
-        self.path = path
-        self.map_size = map_size
-        
-        # Initialize LMDB environment
-        self.env = lmdb.open(
-            path,
-            map_size=map_size,
-            writemap=True,
-            map_async=True
-        )
+        if use_fake:
+            self.client = fakeredis.FakeRedis(db=db, decode_responses=False)
+        else:
+            self.client = redis.Redis(host=host, port=port, db=db, decode_responses=False)
     
     def set(self, key: str, value: Any) -> None:
         """
@@ -40,14 +38,10 @@ class CacheLayer:
             key: String key to store the value under
             value: Any Python object to store
         """
-        # Serialize the value using pickle
         serialized_value = pickle.dumps(value)
-        
-        # Store in LMDB
-        with self.env.begin(write=True) as txn:
-            txn.put(key.encode('utf-8'), serialized_value)
+        self.client.set(key, serialized_value)
     
-    def get(self, key: str) -> Any:
+    def get(self, key: str) -> Optional[Any]:
         """
         Retrieve a value from the cache using pickle deserialization.
         
@@ -57,25 +51,39 @@ class CacheLayer:
         Returns:
             The deserialized Python object, or None if key not found
         """
-        with self.env.begin() as txn:
-            serialized_value = txn.get(key.encode('utf-8'))
-            
-            if serialized_value is None:
-                return None
-            
-            # Deserialize the value using pickle
-            return pickle.loads(serialized_value)
+        serialized_value = self.client.get(key)
+        
+        if serialized_value is None:
+            return None
+        
+        return pickle.loads(serialized_value)
     
-    def close(self) -> None:
+    def delete(self, key: str) -> bool:
         """
-        Close the LMDB environment.
+        Delete a key from the cache.
+        
+        Args:
+            key: String key to delete
+            
+        Returns:
+            True if key was deleted, False if key didn't exist
         """
-        self.env.close()
+        return bool(self.client.delete(key))
     
-    def __enter__(self):
-        """Context manager entry."""
-        return self
+    def clear(self) -> None:
+        """
+        Clear all keys from the cache.
+        """
+        self.client.flushdb()
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - ensure LMDB is properly closed."""
-        self.close()
+    def exists(self, key: str) -> bool:
+        """
+        Check if a key exists in the cache.
+        
+        Args:
+            key: String key to check
+            
+        Returns:
+            True if key exists, False otherwise
+        """
+        return bool(self.client.exists(key))

@@ -1,10 +1,10 @@
 faiss-cpu
 redis
+fakeredis
 boto3
 python-dotenv
 numpy
 pandas
-lmdb
 
 # Development dependencies
 pytest
