@@ -3,15 +3,15 @@ Base classes for file processing components.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, BinaryIO
 
 
 class TextExtractor(ABC):
     """Base class for text extraction from files."""
     
     @abstractmethod
-    def extract(self, file_path: str) -> List[str]:
-        """Extract text chunks from a file."""
+    def extract(self, file_obj: BinaryIO, filename: str = None) -> List[str]:
+        """Extract text chunks from a file object."""
         pass
 
 

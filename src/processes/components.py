@@ -3,7 +3,7 @@ Concrete implementations of text extraction and embedding generation.
 """
 
 import re
-from typing import List
+from typing import List, BinaryIO
 import PyPDF2
 from sentence_transformers import SentenceTransformer
 
@@ -18,42 +18,41 @@ class PDFTextExtractor(TextExtractor):
         self.chunk_size = chunk_size
         self.overlap = overlap
     
-    def extract(self, file_path: str) -> List[str]:
-        """Extract text chunks from PDF file with sentence-aware splitting."""
+    def extract(self, file_obj: BinaryIO, filename: str = None) -> List[str]:
+        """Extract text chunks from PDF file object with sentence-aware splitting."""
         chunks = []
-        with open(file_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-                text = page.extract_text()
-                if not text or not text.strip():
-                    continue
+        reader = PyPDF2.PdfReader(file_obj)
+        for page in reader.pages:
+            text = page.extract_text()
+            if not text or not text.strip():
+                continue
 
-                # Split into sentences (basic regex: split on ., ?, ! followed by space or end of line)
-                sentences = re.split(r'(?<=[.?!])\s+', text.strip())
+            # Split into sentences (basic regex: split on ., ?, ! followed by space or end of line)
+            sentences = re.split(r'(?<=[.?!])\s+', text.strip())
 
-                current_chunk = []
-                current_length = 0
-                for sentence in sentences:
-                    words = sentence.split()
-                    if current_length + len(words) > self.chunk_size:
-                        # Save current chunk
-                        chunks.append(" ".join(current_chunk))
-
-                        # Start a new chunk with overlap
-                        if self.overlap > 0 and current_chunk:
-                            overlap_words = " ".join(current_chunk).split()[-self.overlap:]
-                            current_chunk = [" ".join(overlap_words)]
-                            current_length = len(overlap_words)
-                        else:
-                            current_chunk = []
-                            current_length = 0
-
-                    current_chunk.append(sentence)
-                    current_length += len(words)
-
-                # Add last chunk if non-empty
-                if current_chunk:
+            current_chunk = []
+            current_length = 0
+            for sentence in sentences:
+                words = sentence.split()
+                if current_length + len(words) > self.chunk_size:
+                    # Save current chunk
                     chunks.append(" ".join(current_chunk))
+
+                    # Start a new chunk with overlap
+                    if self.overlap > 0 and current_chunk:
+                        overlap_words = " ".join(current_chunk).split()[-self.overlap:]
+                        current_chunk = [" ".join(overlap_words)]
+                        current_length = len(overlap_words)
+                    else:
+                        current_chunk = []
+                        current_length = 0
+
+                current_chunk.append(sentence)
+                current_length += len(words)
+
+            # Add last chunk if non-empty
+            if current_chunk:
+                chunks.append(" ".join(current_chunk))
 
         return chunks
 

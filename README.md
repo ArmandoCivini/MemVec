@@ -207,7 +207,12 @@ This project is a weekend POC. Contributions welcome — open issues for ideas o
 
 ## Critical Work (MVP Requirements)
 
-- [ ] **Add cache layer**: implement a cache layer between the index fetching and the s3 storage
+- [x] **Add cache layer**: implement a cache layer between the index fetching and the s3 storage
+- [ ] **File deletion logic**: Complete implementation of file deletion in API
+  - Remove vectors from FAISS index
+  - Remove vector chunks from S3 storage  
+  - Clean up all related cache entries
+  - Handle cascading deletions properly
 
 ## Enhancements (Performance & Features)
 

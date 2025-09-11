@@ -30,16 +30,17 @@ class CacheLayer:
         else:
             self.client = redis.Redis(host=host, port=port, db=db, decode_responses=False)
     
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """
         Store a value in the cache using pickle serialization.
         
         Args:
             key: String key to store the value under
             value: Any Python object to store
+            ttl: Time to live in seconds (optional)
         """
         serialized_value = pickle.dumps(value)
-        self.client.set(key, serialized_value)
+        self.client.set(key, serialized_value, ex=ttl)
     
     def get(self, key: str) -> Optional[Any]:
         """

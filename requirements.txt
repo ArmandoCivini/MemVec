@@ -6,6 +6,12 @@ python-dotenv
 numpy
 pandas
 
+# API dependencies
+fastapi
+uvicorn
+pydantic
+python-multipart
+
 # Development dependencies
 pytest
 black
