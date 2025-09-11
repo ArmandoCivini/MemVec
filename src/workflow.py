@@ -42,8 +42,10 @@ def add_file_to_system(
         - success: Boolean indicating overall success
     """
     try:
-        # Process the file into chunks
-        chunks = processor.process_file(file_path, index)
+        # Process the file into chunks using file object
+        filename = file_path.split('/')[-1]  # Extract filename from path
+        with open(file_path, 'rb') as file_obj:
+            chunks = processor.process_file(file_obj, filename, index)
         
         # Get document ID from first vector
         document_id = chunks[0][0].document if chunks and chunks[0] else None

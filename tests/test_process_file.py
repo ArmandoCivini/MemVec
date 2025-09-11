@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.processes.process_file import FileProcessor
-from src.processes.components import PDFTextExtractor, SentenceTransformerEmbedding
+from src.processes.components import SentenceTransformerEmbedding
 from src.index.index import HNSWIndex
 
 
@@ -19,16 +19,17 @@ def test_process_file(test_file_path="datasets/attention.pdf"):
     print(f"Testing FileProcessor with: {test_file_path}")
     
     # Create configurable components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index with correct dimension using the new method
     dimension = processor.get_index_dimension()
     index = HNSWIndex(dimension=dimension)
     
-    # Process the file
-    chunks = processor.process_file(test_file_path, index)
+    # Process the file using file object
+    filename = os.path.basename(test_file_path)
+    with open(test_file_path, 'rb') as file_obj:
+        chunks = processor.process_file(file_obj, filename, index)
     
     # Verify result is a list of chunks (lists of vectors)
     assert isinstance(chunks, list)
@@ -94,17 +95,18 @@ def test_process_file_with_index(test_file_path="datasets/attention.pdf"):
     print(f"Testing FileProcessor with index using: {test_file_path}")
     
     # Create configurable components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index with correct dimension using the new method
     dimension = processor.get_index_dimension()
     index = HNSWIndex(dimension=dimension)
     initial_size = index.size()
     
-    # Process the file with index
-    chunks = processor.process_file(test_file_path, index)
+    # Process the file with index using file object
+    filename = os.path.basename(test_file_path)
+    with open(test_file_path, 'rb') as file_obj:
+        chunks = processor.process_file(file_obj, filename, index)
     
     # Flatten chunks to get all vectors
     all_vectors = [vector for chunk in chunks for vector in chunk]
@@ -142,16 +144,17 @@ def test_file_processor_class(test_file_path="datasets/attention.pdf"):
     print(f"Testing FileProcessor class with: {test_file_path}")
     
     # Create configurable components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index with correct dimension using the new method
     dimension = processor.get_index_dimension()
     index = HNSWIndex(dimension=dimension)
     
-    # Process file using the class
-    chunks = processor.process_file(test_file_path, index)
+    # Process file using the class with file object
+    filename = os.path.basename(test_file_path)
+    with open(test_file_path, 'rb') as file_obj:
+        chunks = processor.process_file(file_obj, filename, index)
     
     # Flatten chunks to get all vectors
     all_vectors = [vector for chunk in chunks for vector in chunk]

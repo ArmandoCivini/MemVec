@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.query import query_system, batch_query_system, _group_vectors_by_chunk
 from src.workflow import add_file_to_system
 from src.processes.process_file import FileProcessor
-from src.processes.components import PDFTextExtractor, SentenceTransformerEmbedding
+from src.processes.components import SentenceTransformerEmbedding
 from src.index.index import HNSWIndex
 from src.s3.mock_client import MockS3Client
 from src.vectors.pointer import Pointer
@@ -61,9 +61,8 @@ def test_end_to_end_query_workflow(test_file_path="datasets/attention.pdf"):
     print(f"Testing end-to-end query workflow with: {test_file_path}")
     
     # Set up components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index
     dimension = processor.get_index_dimension()
@@ -143,9 +142,8 @@ def test_batch_query_system(test_file_path="datasets/attention.pdf"):
     print(f"Testing batch query functionality with: {test_file_path}")
     
     # Set up components (reuse setup from previous test)
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     dimension = processor.get_index_dimension()
     index = HNSWIndex(dimension=dimension)

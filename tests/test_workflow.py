@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.workflow import add_file_to_system
 from src.processes.process_file import FileProcessor
-from src.processes.components import PDFTextExtractor, SentenceTransformerEmbedding
+from src.processes.components import SentenceTransformerEmbedding
 from src.index.index import HNSWIndex
 from src.s3.mock_client import MockS3Client
 from src.vectors.pointer import Pointer
@@ -96,9 +96,8 @@ def test_add_file_to_system_mock_s3(test_file_path="datasets/attention.pdf"):
     print(f"Testing complete workflow with mock S3 using: {test_file_path}")
     
     # Create components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index with correct dimension
     dimension = processor.get_index_dimension()
@@ -168,9 +167,8 @@ def test_add_file_to_system_error_handling():
     print("Testing workflow error handling with invalid file")
     
     # Create components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index
     dimension = processor.get_index_dimension()
@@ -207,9 +205,8 @@ def test_workflow_with_chunking(test_file_path="datasets/attention.pdf"):
     print(f"Testing workflow chunking behavior with: {test_file_path}")
     
     # Create components
-    text_extractor = PDFTextExtractor()
     embedding_generator = SentenceTransformerEmbedding()
-    processor = FileProcessor(text_extractor, embedding_generator)
+    processor = FileProcessor(embedding_generator)
     
     # Create index
     dimension = processor.get_index_dimension()
