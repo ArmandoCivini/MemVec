@@ -121,7 +121,7 @@ def test_process_file_with_index(test_file_path="datasets/attention.pdf"):
     # Test that we can search the index
     if len(all_vectors) > 0:
         query_vector = all_vectors[0]  # Use first vector values as query
-        distances, vector_ids = index.search(query_vector, k=1)
+        distances, vector_ids = index.search(query_vector.values, k=1)
         
         assert len(distances) == 1, "Should return exactly 1 result"
         assert len(vector_ids) == 1, "Should return exactly 1 vector ID"

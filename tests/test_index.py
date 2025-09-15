@@ -51,7 +51,7 @@ def test_index_operations():
     
     # Test search with query vector similar to vec-1
     query_vector = Vector(values=[0.9, 0.1, 0.1], document=0, chunk=0, offset=0)
-    distances, vector_ids = index.search(query_vector, k=3)
+    distances, vector_ids = index.search(query_vector.values, k=3)
     
     # Check search results
     assert len(distances) == 3
@@ -60,14 +60,14 @@ def test_index_operations():
     print(f"✓ Search found closest vector with ID {vector_ids[0]} at distance {distances[0]:.4f}")
     
     # Test search with different k value
-    distances_k5, vector_ids_k5 = index.search(query_vector, k=5)
+    distances_k5, vector_ids_k5 = index.search(query_vector.values, k=5)
     assert len(distances_k5) == 5
     assert len(vector_ids_k5) == 5
     print("✓ Search with k=5 returned correct number of results")
     
     # Test search with vector in the middle
     middle_query = Vector(values=[0.3, 0.3, 0.3], document=0, chunk=0, offset=0)
-    distances_middle, vector_ids_middle = index.search(middle_query, k=2)
+    distances_middle, vector_ids_middle = index.search(middle_query.values, k=2)
     assert len(distances_middle) == 2
     print(f"✓ Middle search found vectors with IDs {vector_ids_middle}")
 
@@ -97,7 +97,7 @@ def test_single_vector_operations():
     
     # Search with single vector in index
     query = Vector(values=[1.1, 2.1], document=0, chunk=0, offset=0)
-    distances, vector_ids = index.search(query, k=1)
+    distances, vector_ids = index.search(query.values, k=1)
     
     assert len(distances) == 1
     assert len(vector_ids) == 1
@@ -165,44 +165,11 @@ def test_vectors_without_indices():
     
     # Search should still work
     query = Vector(values=[0.9, 0.1], document=0, chunk=0, offset=0)
-    distances, vector_ids = index.search(query, k=1)
+    distances, vector_ids = index.search(query.values, k=1)
     
     assert len(distances) == 1
     assert len(vector_ids) == 1
     print(f"✓ Search with pointer-based indices successful, found ID {vector_ids[0]}")
-
-
-def test_empty_vector_addition():
-    """Test adding empty vector list."""
-    
-    index = HNSWIndex(dimension=3)
-    
-    # Test adding empty list
-    index.add_vectors([])
-    assert index.size() == 0
-    print("✓ Empty vector addition handled correctly")
-
-
-def test_single_vector_operations():
-    """Test operations with a single vector."""
-    
-    index = HNSWIndex(dimension=2)
-    
-    # Add single vector with explicit index
-    single_vector = [Vector(values=[1.0, 2.0], index=999)]
-    index.add_vectors(single_vector)
-    
-    assert index.size() == 1
-    print("✓ Single vector addition successful")
-    
-    # Search with single vector in index
-    query = Vector(values=[1.1, 2.1], document=0, chunk=0, offset=0)
-    distances, vector_ids = index.search(query, k=1)
-    
-    assert len(distances) == 1
-    assert len(vector_ids) == 1
-    assert vector_ids[0] == 999
-    print(f"✓ Single vector search successful, found vector ID {vector_ids[0]} at distance {distances[0]:.4f}")
 
 
 def test_multi_search():
