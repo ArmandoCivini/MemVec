@@ -69,26 +69,23 @@ class HNSWIndex:
         query_array = np.array([query_embedding], dtype=np.float32)
         
         if threshold is not None:
-            # Use FAISS range_search for efficient threshold-based search
-            # Note: FAISS uses strict inequality (distance < threshold), not (distance <= threshold)
-            # Also: FAISS uses squared L2 distance by default
-            lims, distances, indices = self.index.range_search(query_array, threshold)
+            # Use regular search with a larger k, then filter by threshold
+            # This is more efficient than range_search + manual k-limiting
+            # because FAISS search is optimized for k-nearest neighbors
+            search_k = max(k * 2, 50)  # Search more to account for filtering
+            distances, indices = self.index.search(query_array, search_k)
             
-            # range_search returns all results within threshold, but we may want to limit to k
-            start_idx = lims[0]
-            end_idx = lims[1]
+            # Filter by threshold and limit to k
+            filtered_distances = []
+            filtered_indices = []
+            for dist, idx in zip(distances[0], indices[0]):
+                if dist < threshold:  # FAISS uses squared L2, strict inequality
+                    filtered_distances.append(dist)
+                    filtered_indices.append(idx)
+                    if len(filtered_distances) >= k:  # Stop once we have k results
+                        break
             
-            result_distances = distances[start_idx:end_idx]
-            result_indices = indices[start_idx:end_idx]
-            
-            # Limit to k results if more than k found
-            if len(result_distances) > k:
-                # Sort by distance and take top k
-                sorted_pairs = sorted(zip(result_distances, result_indices))
-                result_distances = [d for d, _ in sorted_pairs[:k]]
-                result_indices = [i for _, i in sorted_pairs[:k]]
-            
-            return result_distances.tolist(), result_indices.tolist()
+            return filtered_distances, filtered_indices
         else:
             # Use regular search when no threshold
             distances, indices = self.index.search(query_array, k)
@@ -113,31 +110,27 @@ class HNSWIndex:
         query_embeddings = np.array([vector.values for vector in query_vectors], dtype=np.float32)
         
         if threshold is not None:
-            # Use FAISS range_search for efficient threshold-based search
-            # Note: FAISS uses strict inequality (distance < threshold), not (distance <= threshold)
-            # Also: FAISS uses squared L2 distance by default
-            lims, distances, indices = self.index.range_search(query_embeddings, threshold)
+            # Use regular search with larger k, then filter by threshold
+            search_k = max(k * 2, 50)  # Search more to account for filtering
+            distances, indices = self.index.search(query_embeddings, search_k)
             
             # Process results for each query
             result_distances = []
             result_indices = []
             
             for i in range(len(query_vectors)):
-                start_idx = lims[i]
-                end_idx = lims[i + 1]
+                query_filtered_distances = []
+                query_filtered_indices = []
                 
-                query_distances = distances[start_idx:end_idx]
-                query_indices = indices[start_idx:end_idx]
+                for dist, idx in zip(distances[i], indices[i]):
+                    if dist < threshold:  # FAISS uses squared L2, strict inequality
+                        query_filtered_distances.append(dist)
+                        query_filtered_indices.append(idx)
+                        if len(query_filtered_distances) >= k:  # Stop once we have k results
+                            break
                 
-                # Limit to k results if more than k found
-                if len(query_distances) > k:
-                    # Sort by distance and take top k
-                    sorted_pairs = sorted(zip(query_distances, query_indices))
-                    query_distances = [d for d, _ in sorted_pairs[:k]]
-                    query_indices = [i for _, i in sorted_pairs[:k]]
-                
-                result_distances.append(query_distances.tolist())
-                result_indices.append(query_indices.tolist())
+                result_distances.append(query_filtered_distances)
+                result_indices.append(query_filtered_indices)
             
             return result_distances, result_indices
         else:
