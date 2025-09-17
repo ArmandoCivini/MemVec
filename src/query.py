@@ -20,6 +20,7 @@ def query_system(
     bucket_name: str,
     embedding_generator,
     k: int = 5,
+    threshold: float = None,
     s3_client=None
 ) -> Dict[str, Any]:
     """
@@ -31,6 +32,7 @@ def query_system(
         bucket_name: S3 bucket name where chunks are stored
         embedding_generator: Embedding generator to encode the query
         k: Number of results to return
+        threshold: Optional maximum distance threshold for results
         s3_client: Optional S3 client
         
     Returns:
@@ -46,7 +48,7 @@ def query_system(
         query_embedding = query_embeddings[0]
         
         # Search the index (now accepts raw embeddings)
-        distances, vector_ids = index.search(query_embedding, k=k)
+        distances, vector_ids = index.search(query_embedding, k=k, threshold=threshold)
         
         # If no results found
         if len(vector_ids) == 0:
@@ -154,6 +156,7 @@ def batch_query_system(
     bucket_name: str,
     embedding_generator,
     k: int = 5,
+    threshold: float = None,
     s3_client=None
 ) -> List[Dict[str, Any]]:
     """
@@ -165,6 +168,7 @@ def batch_query_system(
         bucket_name: S3 bucket name where chunks are stored
         embedding_generator: Embedding generator to encode the queries
         k: Number of results to return per query
+        threshold: Optional maximum distance threshold for results
         s3_client: Optional S3 client
         
     Returns:
@@ -179,6 +183,7 @@ def batch_query_system(
             bucket_name=bucket_name,
             embedding_generator=embedding_generator,
             k=k,
+            threshold=threshold,
             s3_client=s3_client
         )
         results.append(result)

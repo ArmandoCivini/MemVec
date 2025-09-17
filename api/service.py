@@ -111,26 +111,24 @@ class MemVecService:
         Args:
             query_text: Text to search for
             k: Number of results to return
-            threshold: Optional similarity threshold
+            threshold: Optional similarity threshold (filters at index level)
             
         Returns:
             Dictionary with query results
         """
         try:
-            # Query the system
+            # Query the system with threshold passed to index level
             result = query_system(
                 query_text=query_text,
                 index=self.index,
                 bucket_name=self.bucket_name,
                 embedding_generator=self.embedding_generator,
-                k=k
+                k=k,
+                threshold=threshold
             )
             
             if result["success"]:
-                # Filter by threshold if provided
                 search_results = result["search_results"]
-                if threshold is not None:
-                    search_results = [r for r in search_results if r["distance"] <= threshold]
                 
                 return {
                     "query_text": query_text,
