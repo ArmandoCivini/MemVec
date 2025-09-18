@@ -59,9 +59,9 @@ def add_file_to_system(
             
             upload_result = upload_vector_chunk(
                 vectors=chunk,
-                chunk_id=chunk_id,
+                s3_client=s3_client,
                 bucket_name=bucket_name,
-                s3_client=s3_client
+                chunk_id=chunk_id
             )
             s3_uploads.append(upload_result)
         

@@ -7,11 +7,13 @@ corresponding vectors and metadata from S3.
 
 from typing import List, Dict, Any, Tuple
 import heapq
+import boto3
 from .index.index import HNSWIndex
-from .s3.chunk_upload import download_vector_chunk
+from .s3.chunk_upload import download_multiple_vector_chunks
 from .vectors.vectors import Vector
 from .vectors.pointer import Pointer
 from .processes.components import SentenceTransformerEmbedding
+from .config.env import AWS_REGION
 
 
 def query_system(
@@ -66,16 +68,22 @@ def query_system(
         # Use heap to maintain order by distance
         result_heap = []
         
-        # Fetch vectors from S3
+        # Create S3 client if not provided
+        if s3_client is None:
+            s3_client = boto3.client('s3', region_name=AWS_REGION)
+        
+        # Fetch vectors from S3 using batch download
+        chunk_ids = list(chunk_groups.keys())
+        download_results = download_multiple_vector_chunks(
+            chunk_ids=chunk_ids,
+            s3_client=s3_client,
+            bucket_name=bucket_name
+        )
+        
+        # Process successfully downloaded chunks
         for chunk_id, vector_indices in chunk_groups.items():
-            download_result = download_vector_chunk(
-                chunk_id=chunk_id,
-                bucket_name=bucket_name,
-                s3_client=s3_client
-            )
-            
-            if download_result["success"]:
-                chunk_vectors = download_result["vectors"]  # This is a numpy array
+            if chunk_id in download_results["chunks"]:
+                chunk_vectors = download_results["chunks"][chunk_id]  # This is a numpy array
                 
                 # Find the specific vectors we need using offset directly
                 for vector_index in vector_indices:

@@ -58,9 +58,9 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     # Upload chunk
     upload_result = upload_vector_chunk(
         vectors=test_vectors,
-        chunk_id="test-chunk",
+        s3_client=s3_client,
         bucket_name=bucket_name,
-        s3_client=s3_client
+        chunk_id="test-chunk"
     )
     
     # Check upload success
@@ -72,8 +72,8 @@ def test_chunk_upload_download(use_real_s3=False, bucket_name="test-bucket"):
     # Download chunk
     download_result = download_vector_chunk(
         chunk_id="test-chunk",
-        bucket_name=bucket_name,
-        s3_client=s3_client
+        s3_client=s3_client,
+        bucket_name=bucket_name
     )
     
     # Check download success

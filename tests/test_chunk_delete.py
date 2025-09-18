@@ -59,9 +59,9 @@ def test_chunk_delete(use_real_s3=False, bucket_name="test-bucket"):
     # Upload chunk
     upload_result = upload_vector_chunk(
         vectors=test_vectors,
-        chunk_id="test-delete-chunk",
+        s3_client=s3_client,
         bucket_name=bucket_name,
-        s3_client=s3_client
+        chunk_id="test-delete-chunk"
     )
     
     assert upload_result["success"] is True
@@ -70,8 +70,8 @@ def test_chunk_delete(use_real_s3=False, bucket_name="test-bucket"):
     # Verify chunk exists by downloading
     download_result = download_vector_chunk(
         chunk_id="test-delete-chunk",
-        bucket_name=bucket_name,
-        s3_client=s3_client
+        s3_client=s3_client,
+        bucket_name=bucket_name
     )
     
     assert download_result["success"] is True
@@ -91,8 +91,8 @@ def test_chunk_delete(use_real_s3=False, bucket_name="test-bucket"):
     # Verify chunk no longer exists
     download_result_after_delete = download_vector_chunk(
         chunk_id="test-delete-chunk",
-        bucket_name=bucket_name,
-        s3_client=s3_client
+        s3_client=s3_client,
+        bucket_name=bucket_name
     )
     
     assert download_result_after_delete["success"] is False
