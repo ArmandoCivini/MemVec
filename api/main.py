@@ -4,7 +4,7 @@ Main FastAPI application for MemVec API.
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict, Any, Optional
+from typing import Optional
 import sys
 import os
 

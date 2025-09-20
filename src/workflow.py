@@ -5,11 +5,10 @@ This module provides the end-to-end functionality for processing files,
 adding them to the index, and storing chunks in S3.
 """
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 from .processes.process_file import FileProcessor
 from .index.index import HNSWIndex
 from .s3.chunk_upload import upload_vector_chunk
-from .vectors.vectors import Vector
 
 
 def add_file_to_system(

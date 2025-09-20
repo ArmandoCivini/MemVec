@@ -6,10 +6,8 @@ Metadata is handled by the internal storage system, not stored in S3.
 """
 
 import pickle
-import numpy as np
 import boto3
 from typing import List, Dict, Any, Optional
-from ..config.env import AWS_REGION
 from ..vectors.vectors import Vector
 from .chunker import prepare_vectors_for_storage, get_chunk_info, create_chunk_key
 

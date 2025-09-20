@@ -5,14 +5,12 @@ This module provides functionality to search the index and retrieve
 corresponding vectors and metadata from S3.
 """
 
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 import heapq
 import boto3
 from .index.index import HNSWIndex
 from .s3.chunk_upload import download_multiple_vector_chunks
-from .vectors.vectors import Vector
 from .vectors.pointer import Pointer
-from .processes.components import SentenceTransformerEmbedding
 from .config.env import AWS_REGION
 
 

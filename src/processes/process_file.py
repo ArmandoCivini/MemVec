@@ -9,8 +9,8 @@ from ..vectors.vectors import Vector
 from ..vectors.pointer import generate_document_id
 from ..index.index import HNSWIndex
 from ..config.contants import MAX_VECTORS_PER_CHUNK, METADATA_TEXT_PREVIEW_LENGTH
-from .base import TextExtractor, EmbeddingGenerator
-from .components import PDFTextExtractor, SentenceTransformerEmbedding
+from .base import EmbeddingGenerator
+from .components import PDFTextExtractor
 
 
 class FileProcessor:
