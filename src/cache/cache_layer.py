@@ -3,7 +3,7 @@ CacheLayer implementation using Redis/FakeRedis as an embedded key/value store.
 """
 
 import pickle
-from typing import Any, Optional
+from typing import Any, Optional, List, Dict
 import redis
 import fakeredis
 
@@ -88,3 +88,44 @@ class CacheLayer:
             True if key exists, False otherwise
         """
         return bool(self.client.exists(key))
+
+    # -------- Batch operations (using Redis pipeline) --------
+    def batch_get(self, keys: List[str]) -> Dict[str, Any]:
+        """
+        Retrieve multiple keys using a pipeline.
+
+        Args:
+            keys: List of keys to retrieve
+
+        Returns:
+            Dict mapping key -> deserialized value for keys that exist
+        """
+        if not keys:
+            return {}
+
+        pipe = self.client.pipeline()
+        for key in keys:
+            pipe.get(key)
+        results = pipe.execute()
+
+        out: Dict[str, Any] = {}
+        for key, serialized_value in zip(keys, results):
+            if serialized_value is not None:
+                out[key] = pickle.loads(serialized_value)
+        return out
+
+    def batch_set(self, items: Dict[str, Any], ttl: Optional[int] = None) -> None:
+        """
+        Set multiple key/value pairs using a pipeline.
+
+        Args:
+            items: Mapping of key -> Python object
+            ttl: Optional TTL in seconds applied per key
+        """
+        if not items:
+            return
+
+        pipe = self.client.pipeline()
+        for key, value in items.items():
+            pipe.set(key, pickle.dumps(value), ex=ttl)
+        pipe.execute()

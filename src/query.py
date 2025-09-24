@@ -9,6 +9,7 @@ from typing import List, Dict, Any
 import heapq
 import boto3
 from .index.index import HNSWIndex
+from .cache.cache_layer import CacheLayer
 from .s3.chunk_upload import download_multiple_vector_chunks
 from .vectors.pointer import Pointer
 from .config.env import AWS_REGION
@@ -16,6 +17,19 @@ from .config.env import AWS_REGION
 
 # Cache TTL for chunks (1 day)
 CACHE_TTL_SECONDS = 60 * 60 * 24
+
+
+def _cache_get_many(cache, chunk_ids: List[int]) -> Dict[int, Any]:
+    """Fetch many chunks from cache using batch_get."""
+    key_map = {f"chunk:{cid}": cid for cid in chunk_ids}
+    raw = cache.batch_get(list(key_map.keys()))
+    return {key_map[k]: v for k, v in raw.items()}
+
+
+def _cache_set_many(cache, items: Dict[int, Any], ttl: int) -> None:
+    """Store many chunks in cache using batch_set."""
+    kv = {f"chunk:{cid}": arr for cid, arr in items.items()}
+    cache.batch_set(kv, ttl=ttl)
 
 
 def query_system(
@@ -26,7 +40,7 @@ def query_system(
     k: int = 5,
     threshold: float = None,
     s3_client=None,
-    cache=None
+    cache: CacheLayer = CacheLayer()
 ) -> Dict[str, Any]:
     """
     Query the MemVec system with text and retrieve matching vectors from S3.
@@ -71,25 +85,17 @@ def query_system(
         # Use heap to maintain order by distance
         result_heap = []
         
-        # Create S3 client if not provided
+    # Create S3 client if not provided
         if s3_client is None:
             s3_client = boto3.client('s3', region_name=AWS_REGION)
         
         # Resolve chunks via cache first, then fetch any misses from S3 and cache them
         chunk_ids = list(chunk_groups.keys())
-        chunks_map = {}
-        missing_chunk_ids = []
-
-        if cache is not None:
-            for chunk_id in chunk_ids:
-                cache_key = f"chunk:{chunk_id}"
-                cached = cache.get(cache_key)
-                if cached is not None:
-                    chunks_map[chunk_id] = cached
-                else:
-                    missing_chunk_ids.append(chunk_id)
-        else:
-            missing_chunk_ids = chunk_ids
+        chunks_map: Dict[int, Any] = {}
+        # Try cache first (batch)
+        cached_map = _cache_get_many(cache, chunk_ids)
+        chunks_map.update(cached_map)
+        missing_chunk_ids = [cid for cid in chunk_ids if cid not in chunks_map]
 
         if missing_chunk_ids:
             download_results = download_multiple_vector_chunks(
@@ -97,10 +103,11 @@ def query_system(
                 s3_client=s3_client,
                 bucket_name=bucket_name
             )
+            new_items: Dict[int, Any] = {}
             for cid, vectors_array in download_results.get("chunks", {}).items():
                 chunks_map[cid] = vectors_array
-                if cache is not None:
-                    cache.set(f"chunk:{cid}", vectors_array, ttl=CACHE_TTL_SECONDS)
+                new_items[cid] = vectors_array
+            _cache_set_many(cache, new_items, ttl=CACHE_TTL_SECONDS)
         
         # Process successfully downloaded chunks
         for chunk_id, vector_indices in chunk_groups.items():
@@ -188,7 +195,7 @@ def batch_query_system(
     k: int = 5,
     threshold: float = None,
     s3_client=None,
-    cache=None
+    cache: CacheLayer = CacheLayer()
 ) -> List[Dict[str, Any]]:
     """
     Query the MemVec system with multiple text queries.
