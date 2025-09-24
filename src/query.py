@@ -14,6 +14,10 @@ from .vectors.pointer import Pointer
 from .config.env import AWS_REGION
 
 
+# Cache TTL for chunks (1 day)
+CACHE_TTL_SECONDS = 60 * 60 * 24
+
+
 def query_system(
     query_text: str,
     index: HNSWIndex,
@@ -21,7 +25,8 @@ def query_system(
     embedding_generator,
     k: int = 5,
     threshold: float = None,
-    s3_client=None
+    s3_client=None,
+    cache=None
 ) -> Dict[str, Any]:
     """
     Query the MemVec system with text and retrieve matching vectors from S3.
@@ -70,18 +75,37 @@ def query_system(
         if s3_client is None:
             s3_client = boto3.client('s3', region_name=AWS_REGION)
         
-        # Fetch vectors from S3 using batch download
+        # Resolve chunks via cache first, then fetch any misses from S3 and cache them
         chunk_ids = list(chunk_groups.keys())
-        download_results = download_multiple_vector_chunks(
-            chunk_ids=chunk_ids,
-            s3_client=s3_client,
-            bucket_name=bucket_name
-        )
+        chunks_map = {}
+        missing_chunk_ids = []
+
+        if cache is not None:
+            for chunk_id in chunk_ids:
+                cache_key = f"chunk:{chunk_id}"
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    chunks_map[chunk_id] = cached
+                else:
+                    missing_chunk_ids.append(chunk_id)
+        else:
+            missing_chunk_ids = chunk_ids
+
+        if missing_chunk_ids:
+            download_results = download_multiple_vector_chunks(
+                chunk_ids=missing_chunk_ids,
+                s3_client=s3_client,
+                bucket_name=bucket_name
+            )
+            for cid, vectors_array in download_results.get("chunks", {}).items():
+                chunks_map[cid] = vectors_array
+                if cache is not None:
+                    cache.set(f"chunk:{cid}", vectors_array, ttl=CACHE_TTL_SECONDS)
         
         # Process successfully downloaded chunks
         for chunk_id, vector_indices in chunk_groups.items():
-            if chunk_id in download_results["chunks"]:
-                chunk_vectors = download_results["chunks"][chunk_id]  # This is a numpy array
+            if chunk_id in chunks_map:
+                chunk_vectors = chunks_map[chunk_id]  # numpy array
                 
                 # Find the specific vectors we need using offset directly
                 for vector_index in vector_indices:
@@ -163,7 +187,8 @@ def batch_query_system(
     embedding_generator,
     k: int = 5,
     threshold: float = None,
-    s3_client=None
+    s3_client=None,
+    cache=None
 ) -> List[Dict[str, Any]]:
     """
     Query the MemVec system with multiple text queries.
@@ -190,7 +215,8 @@ def batch_query_system(
             embedding_generator=embedding_generator,
             k=k,
             threshold=threshold,
-            s3_client=s3_client
+            s3_client=s3_client,
+            cache=cache
         )
         results.append(result)
     
